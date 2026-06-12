@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 import Image from 'next/image'
+import Video from '@/components/Video'
 import { gsap, useGSAP } from '@/lib/gsap'
 import { stores, getAdjacentStores, cycleDir, type Store } from '@/data/stores'
 
@@ -330,7 +331,7 @@ export default function HeroCatalog() {
         className="relative h-screen w-full overflow-hidden bg-black"
       >
         {/* ── Background video ─────────────────────────────────────────── */}
-        <video
+        <Video
           ref={videoRef}
           autoPlay
           muted
