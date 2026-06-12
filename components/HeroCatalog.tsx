@@ -473,7 +473,7 @@ export default function HeroCatalog() {
               {store.products.map((product, i) => (
                 <div
                   key={`${currentIndex}-p${i}`}
-                  className="product-card group relative bg-white/[0.06] border border-white/15 rounded-md overflow-hidden cursor-pointer hover:bg-white/[0.09] hover:border-white/50 transition-all duration-500 ease-out"
+                  className="product-card group relative bg-black/45 backdrop-blur-sm border border-white/15 rounded-md overflow-hidden cursor-pointer hover:bg-black/60 hover:border-white/50 transition-all duration-500 ease-out"
                   style={{ clipPath: "inset(0% 0% 0% 0%)" }}
                 >
                   <div className="relative w-full aspect-[5/4] overflow-hidden">
