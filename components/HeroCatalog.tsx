@@ -469,7 +469,7 @@ export default function HeroCatalog() {
             </div>
 
             {/* Products 4×2 */}
-            <div className="grid grid-cols-4 gap-2 lg:gap-3 w-full max-w-3xl xl:max-w-[880px]">
+            <div className="grid grid-cols-4 gap-3 lg:gap-4 w-full max-w-3xl xl:max-w-[880px]">
               {store.products.map((product, i) => (
                 <div
                   key={`${currentIndex}-p${i}`}
@@ -488,11 +488,11 @@ export default function HeroCatalog() {
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/45 to-transparent pointer-events-none" />
                   </div>
                   {/* Info area */}
-                  <div className="px-4 pt-3.5 pb-4">
+                  <div className="px-5 pt-4 pb-5">
                     <p className="text-white/90 text-[15px] leading-snug tracking-[0.01em] line-clamp-2 font-sans">
                       {product.name}
                     </p>
-                    <p className="font-sans font-semibold text-white text-lg tracking-[0.03em] mt-2 leading-none">
+                    <p className="font-sans font-semibold text-white text-lg tracking-[0.03em] mt-3 leading-none">
                       {product.price}
                     </p>
                   </div>
