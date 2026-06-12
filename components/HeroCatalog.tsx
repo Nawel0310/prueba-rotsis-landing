@@ -3,7 +3,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 import Image from 'next/image'
-import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap'
+import { gsap, useGSAP } from '@/lib/gsap'
 import { stores, getAdjacentStores, cycleDir, type Store } from '@/data/stores'
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -214,33 +214,12 @@ export default function HeroCatalog() {
     const dir = cycleDir(currentIndexRef.current, targetIndex)
     currentIndexRef.current = targetIndex
     transitionToStore(targetIndex, dir)
-
-    const outer = outerRef.current
-    if (!outer) return
-    const scrollRange = outer.offsetHeight - window.innerHeight
-    const targetScroll = outer.offsetTop + (targetIndex / (stores.length - 1)) * scrollRange
-    window.scrollTo({ top: targetScroll })
   }, [transitionToStore])
 
-  // ── ScrollTrigger + intro + micro-interactions ─────────────────────────────
+  // ── Intro + micro-interactions ─────────────────────────────────────────────
   useGSAP(() => {
-    const outer = outerRef.current
     const hero = heroRef.current
-    if (!outer || !hero) return
-
-    ScrollTrigger.create({
-      trigger: outer,
-      start: 'top top',
-      end: 'bottom bottom',
-      onUpdate(self) {
-        const newIndex = Math.round(self.progress * (stores.length - 1))
-        if (newIndex !== currentIndexRef.current) {
-          const dir = cycleDir(currentIndexRef.current, newIndex)
-          currentIndexRef.current = newIndex
-          transitionToStore(newIndex, dir)
-        }
-      },
-    })
+    if (!hero) return
 
     const q = (sel: string) => hero.querySelectorAll<HTMLElement>(sel)
     const mm = gsap.matchMedia()
@@ -252,22 +231,6 @@ export default function HeroCatalog() {
 
     mm.add('(prefers-reduced-motion: no-preference)', () => {
       reducedMotionRef.current = false
-
-      // Background depth: slow vertical drift while the hero is pinned
-      gsap.fromTo(videoRef.current,
-        { yPercent: -3, scale: 1.12 },
-        {
-          yPercent: 3,
-          scale: 1.12,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: outer,
-            start: 'top top',
-            end: 'bottom bottom',
-            scrub: true,
-          },
-        }
-      )
 
       // ── Orchestrated intro ────────────────────────────────────────────────
       const panels = gsap.utils.toArray<HTMLElement>(q('.side-logo-panel'))
@@ -361,10 +324,10 @@ export default function HeroCatalog() {
   const nextIndex2 = (currentIndex + 2) % stores.length
 
   return (
-    <div ref={outerRef} className="h-[700vh]">
+    <div ref={outerRef}>
       <div
         ref={heroRef}
-        className="sticky top-0 h-screen w-full overflow-hidden bg-black"
+        className="relative h-screen w-full overflow-hidden bg-black"
       >
         {/* ── Background video ─────────────────────────────────────────── */}
         <video
@@ -559,16 +522,6 @@ export default function HeroCatalog() {
             />
           ))}
         </div>
-
-        {/* ── Scroll hint ──────────────────────────────────────────────── */}
-        {currentIndex === 0 && (
-          <div className="hero-fade-in absolute bottom-14 right-8 z-20 flex flex-col items-center gap-2 pointer-events-none">
-            <span className="text-white/40 text-[9px] font-light tracking-[0.25em] uppercase">
-              scroll
-            </span>
-            <div className="w-px h-8 bg-white/40 animate-scroll-line" />
-          </div>
-        )}
 
         {/* ── Watermark ───────────────────────────────────────────────── */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-0 pointer-events-none overflow-hidden w-full flex justify-center">
