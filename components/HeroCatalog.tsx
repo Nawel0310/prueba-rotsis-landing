@@ -476,7 +476,7 @@ export default function HeroCatalog() {
                   className="product-card group relative bg-white/[0.06] border border-white/15 rounded-md overflow-hidden cursor-pointer hover:bg-white/[0.09] hover:border-white/50 transition-all duration-500 ease-out"
                   style={{ clipPath: "inset(0% 0% 0% 0%)" }}
                 >
-                  <div className="relative w-full aspect-square overflow-hidden">
+                  <div className="relative w-full aspect-[5/4] overflow-hidden">
                     <Image
                       src={product.imageUrl}
                       alt={product.name}
@@ -487,12 +487,12 @@ export default function HeroCatalog() {
                     {/* Legibility gradient */}
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/45 to-transparent pointer-events-none" />
                   </div>
-                  {/* Info area — editorial serif/sans contrast */}
-                  <div className="px-3.5 pt-3 pb-3.5">
-                    <p className="text-white/55 text-[11px] uppercase tracking-[0.14em] font-medium line-clamp-2 font-sans">
+                  {/* Info area */}
+                  <div className="px-4 pt-3.5 pb-4">
+                    <p className="text-white/90 text-[15px] leading-snug tracking-[0.01em] line-clamp-2 font-sans">
                       {product.name}
                     </p>
-                    <p className="font-cormorant font-light text-white text-2xl mt-1 leading-none">
+                    <p className="font-sans font-semibold text-white text-lg tracking-[0.03em] mt-2 leading-none">
                       {product.price}
                     </p>
                   </div>
