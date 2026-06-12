@@ -452,7 +452,7 @@ export default function HeroCatalog() {
                   </div>
                   {/* Info area */}
                   <div className="px-5 pt-4 pb-5">
-                    <p className="text-white/90 text-[17px] leading-snug tracking-[0.01em] line-clamp-2 font-sans">
+                    <p className="text-white/90 text-[17px] leading-snug tracking-[0.01em] line-clamp-2 min-h-[2.75em] font-sans">
                       {product.name}
                     </p>
                     <p className="font-sans font-semibold text-white text-lg tracking-[0.03em] mt-3 leading-none">
