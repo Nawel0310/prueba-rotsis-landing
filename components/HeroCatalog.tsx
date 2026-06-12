@@ -180,13 +180,19 @@ export default function HeroCatalog() {
 
   return (
     <div ref={outerRef} className="h-[700vh]">
-      <div ref={heroRef} className="sticky top-0 h-screen w-full overflow-hidden bg-black">
-
+      <div
+        ref={heroRef}
+        className="sticky top-0 h-screen w-full overflow-hidden bg-black"
+      >
         {/* ── Background video — reduced blur ─────────────────────────── */}
         <video
-          autoPlay muted loop playsInline preload="auto"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover scale-[1.06]"
-          style={{ filter: 'blur(4px) brightness(0.4)' }}
+          style={{ filter: "blur(4px) brightness(0.4)" }}
           src="/images/1.mp4"
         />
         {/* Vignette */}
@@ -195,15 +201,15 @@ export default function HeroCatalog() {
 
         {/* ── Grid layout ──────────────────────────────────────────────── */}
         <div className="relative z-10 h-full grid grid-cols-[90px_115px_1fr_115px_90px] xl:grid-cols-[110px_140px_1fr_140px_110px] 2xl:grid-cols-[130px_160px_1fr_160px_130px] items-center gap-3 px-4 lg:px-6">
-
           {/* Left far — prev2 */}
           <div className="h-[44vh] flex items-center justify-center">
             <SideLogoPanel
               store={prev2}
               perspStyle={{
-                transform: 'perspective(400px) rotateY(46deg) scaleY(0.68)',
-                transformOrigin: 'right center',
-                width: '100%', height: '100%',
+                transform: "perspective(400px) rotateY(46deg) scaleY(0.68)",
+                transformOrigin: "right center",
+                width: "100%",
+                height: "100%",
               }}
               onClick={() => goToStore(prevIndex2)}
             />
@@ -214,9 +220,10 @@ export default function HeroCatalog() {
             <SideLogoPanel
               store={prev1}
               perspStyle={{
-                transform: 'perspective(400px) rotateY(28deg) scaleY(0.83)',
-                transformOrigin: 'right center',
-                width: '100%', height: '100%',
+                transform: "perspective(400px) rotateY(28deg) scaleY(0.83)",
+                transformOrigin: "right center",
+                width: "100%",
+                height: "100%",
               }}
               onClick={() => goToStore(prevIndex1)}
             />
@@ -224,7 +231,6 @@ export default function HeroCatalog() {
 
           {/* ── Center content ────────────────────────────────────────── */}
           <div className="h-full flex flex-col items-center justify-center gap-4 py-6">
-
             {/* Logo + store name — perspective wrapper for 3D char flip */}
             <div className="flex items-center gap-4 lg:gap-5">
               <div className="w-[60px] h-[60px] lg:w-[70px] lg:h-[70px] bg-white rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.18)] shrink-0">
@@ -239,15 +245,15 @@ export default function HeroCatalog() {
               </div>
 
               {/* perspective on this div enables 3D rotateX on children */}
-              <div style={{ perspective: '900px' }}>
+              <div style={{ perspective: "900px" }}>
                 <h1 className="font-cormorant font-light text-white uppercase leading-none tracking-[0.2em] lg:tracking-[0.28em] text-4xl lg:text-5xl xl:text-[3.5rem] whitespace-nowrap">
-                  {store.name.split('').map((char, i) => (
+                  {store.name.split("").map((char, i) => (
                     <span
                       key={`${currentIndex}-${i}`}
                       className="store-name-char inline-block"
-                      style={{ display: 'inline-block' }}
+                      style={{ display: "inline-block" }}
                     >
-                      {char === ' ' ? ' ' : char}
+                      {char === " " ? " " : char}
                     </span>
                   ))}
                 </h1>
@@ -262,8 +268,8 @@ export default function HeroCatalog() {
               {store.products.map((product, i) => (
                 <div
                   key={`${currentIndex}-p${i}`}
-                  className="product-card group relative bg-white rounded-xl overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-black/30 transition-shadow duration-300"
-                  style={{ clipPath: 'inset(0% 0% 0% 0%)' }}
+                  className="product-card group relative bg-white/10 backdrop-blur-md border border-white/70 rounded-xl overflow-hidden cursor-pointer hover:bg-white/15 hover:border-white hover:shadow-xl hover:shadow-black/30 transition-all duration-300"
+                  style={{ clipPath: "inset(0% 0% 0% 0%)" }}
                 >
                   <div className="relative w-full aspect-square overflow-hidden">
                     <Image
@@ -274,14 +280,15 @@ export default function HeroCatalog() {
                       sizes="(max-width: 1280px) 18vw, 180px"
                     />
                   </div>
-                  {/* White info area */}
-                  <div className="px-3 py-3 lg:px-4 lg:py-4 bg-white">
-                    <p className="text-black/65 text-sm lg:text-base font-semibold leading-snug line-clamp-2 ml-1">
-                      {product.name}
-                    </p>
-                    <p className="text-black font-normal text-lg lg:text-xl mt-1.5 tracking-tight ml-1">
-                      {product.price}
-                    </p>
+                  {/* Glass info area */}
+                  <div className="px-4 py-4">
+                    <div className="px-2">
+                      <p className="text-white/75 text-sm font-semibold line-clamp-2">
+                        {product.name}
+                      </p>
+
+                      <p className="text-white text-xl mt-1">{product.price}</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -298,9 +305,10 @@ export default function HeroCatalog() {
             <SideLogoPanel
               store={next1}
               perspStyle={{
-                transform: 'perspective(400px) rotateY(-28deg) scaleY(0.83)',
-                transformOrigin: 'left center',
-                width: '100%', height: '100%',
+                transform: "perspective(400px) rotateY(-28deg) scaleY(0.83)",
+                transformOrigin: "left center",
+                width: "100%",
+                height: "100%",
               }}
               onClick={() => goToStore(nextIndex1)}
             />
@@ -311,9 +319,10 @@ export default function HeroCatalog() {
             <SideLogoPanel
               store={next2}
               perspStyle={{
-                transform: 'perspective(400px) rotateY(-46deg) scaleY(0.68)',
-                transformOrigin: 'left center',
-                width: '100%', height: '100%',
+                transform: "perspective(400px) rotateY(-46deg) scaleY(0.68)",
+                transformOrigin: "left center",
+                width: "100%",
+                height: "100%",
               }}
               onClick={() => goToStore(nextIndex2)}
             />
@@ -329,8 +338,8 @@ export default function HeroCatalog() {
               aria-label={`Ir a ${s.name}`}
               className={`rounded-full transition-all duration-300 cursor-pointer ${
                 i === currentIndex
-                  ? 'w-5 h-1.5 bg-white'
-                  : 'w-1.5 h-1.5 bg-white/25 hover:bg-white/55'
+                  ? "w-5 h-1.5 bg-white"
+                  : "w-1.5 h-1.5 bg-white/25 hover:bg-white/55"
               }`}
             />
           ))}
@@ -339,7 +348,9 @@ export default function HeroCatalog() {
         {/* ── Scroll hint ──────────────────────────────────────────────── */}
         {currentIndex === 0 && (
           <div className="absolute bottom-14 right-8 z-20 flex flex-col items-center gap-1.5 opacity-40 pointer-events-none">
-            <span className="text-white text-[9px] font-light tracking-[0.25em] uppercase">scroll</span>
+            <span className="text-white text-[9px] font-light tracking-[0.25em] uppercase">
+              scroll
+            </span>
             <div className="w-px h-7 bg-white animate-pulse" />
           </div>
         )}
@@ -352,5 +363,5 @@ export default function HeroCatalog() {
         </div>
       </div>
     </div>
-  )
+  );
 }
