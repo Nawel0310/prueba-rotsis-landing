@@ -27,7 +27,7 @@ function SideLogoPanel({
       onClick={onClick}
     >
       <div
-        className={`w-full h-full bg-white rounded-lg shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10 flex items-center justify-center p-5 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_28px_70px_rgba(0,0,0,0.8)] ${
+        className={`w-full h-full bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10 flex items-center justify-center p-5 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_28px_70px_rgba(0,0,0,0.8)] ${
           far ? 'brightness-[0.78]' : 'brightness-95 hover:brightness-100'
         }`}
       >
@@ -36,7 +36,7 @@ function SideLogoPanel({
           alt={store.name}
           width={90}
           height={90}
-          className="object-contain max-w-[76px] max-h-[76px] w-full h-full"
+          className="object-contain max-w-[76px] max-h-[76px] w-full h-full rounded-lg"
         />
       </div>
     </div>
@@ -434,13 +434,13 @@ export default function HeroCatalog() {
           >
             {/* Logo + store name — perspective wrapper for 3D char flip */}
             <div className="flex items-center gap-4 lg:gap-5">
-              <div className="w-[60px] h-[60px] lg:w-[70px] lg:h-[70px] bg-white rounded-lg flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.12)] shrink-0">
+              <div className="w-[60px] h-[60px] lg:w-[70px] lg:h-[70px] bg-white rounded-xl flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.12)] shrink-0">
                 <Image
                   src={store.logoPath}
                   alt={store.name}
                   width={52}
                   height={52}
-                  className="store-logo-img object-contain w-[46px] h-[46px] lg:w-[52px] lg:h-[52px]"
+                  className="store-logo-img object-contain w-[46px] h-[46px] lg:w-[52px] lg:h-[52px] rounded-md"
                   preload
                 />
               </div>
@@ -489,7 +489,7 @@ export default function HeroCatalog() {
                   </div>
                   {/* Info area */}
                   <div className="px-5 pt-4 pb-5">
-                    <p className="text-white/90 text-[15px] leading-snug tracking-[0.01em] line-clamp-2 font-sans">
+                    <p className="text-white/90 text-[17px] leading-snug tracking-[0.01em] line-clamp-2 font-sans">
                       {product.name}
                     </p>
                     <p className="font-sans font-semibold text-white text-lg tracking-[0.03em] mt-3 leading-none">
