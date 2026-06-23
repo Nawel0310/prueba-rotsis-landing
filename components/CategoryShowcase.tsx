@@ -46,30 +46,36 @@ export default function CategoryShowcase() {
       return
     }
 
-    tl.to(q('.category-product-card'), {
-      clipPath: 'inset(0% 0% 100% 0%)',
-      stagger: { each: 0.035 },
-      duration: 0.5,
-      ease: 'power2.inOut',
-    }).call(() => {
-      flushSync(() => setActiveIndex(newIndex))
+    tl.to(q('.category-watermark'), { autoAlpha: 0, duration: 0.3, ease: 'power2.inOut' })
+      .to(q('.category-product-card'), {
+        clipPath: 'inset(0% 0% 100% 0%)',
+        stagger: { each: 0.035 },
+        duration: 0.5,
+        ease: 'power2.inOut',
+      }, '<')
+      .call(() => {
+        flushSync(() => setActiveIndex(newIndex))
 
-      tl.fromTo(
-        q('.category-product-card'),
-        { clipPath: 'inset(100% 0% 0% 0%)' },
-        {
-          clipPath: 'inset(0% 0% 0% 0%)',
-          stagger: { each: 0.07 },
-          duration: 1.0,
-          ease: 'power4.out',
-        }
-      ).fromTo(
-        q('.category-product-card .product-card-img'),
-        { scale: 1.18 },
-        { scale: 1, stagger: { each: 0.07 }, duration: 1.4, ease: 'power3.out' },
-        '<'
-      )
-    })
+        tl.fromTo(
+          q('.category-product-card'),
+          { clipPath: 'inset(100% 0% 0% 0%)' },
+          {
+            clipPath: 'inset(0% 0% 0% 0%)',
+            stagger: { each: 0.07 },
+            duration: 1.0,
+            ease: 'power4.out',
+          }
+        ).fromTo(
+          q('.category-product-card .product-card-img'),
+          { scale: 1.18 },
+          { scale: 1, stagger: { each: 0.07 }, duration: 1.4, ease: 'power3.out' },
+          '<'
+        ).to(
+          q('.category-watermark'),
+          { autoAlpha: 1, duration: 0.9, ease: 'power3.out' },
+          '<0.1'
+        )
+      })
   }, [])
 
   useGSAP(
@@ -91,16 +97,20 @@ export default function CategoryShowcase() {
         gsap.set(q('.category-chip'), { y: 16, autoAlpha: 0 })
         gsap.set(q('.category-product-card'), { clipPath: 'inset(100% 0% 0% 0%)' })
         gsap.set(q('.category-product-card .product-card-img'), { scale: 1.18 })
+        gsap.set(q('.category-watermark'), { autoAlpha: 0, scale: 1.06 })
+        gsap.set(q('.category-glow'), { autoAlpha: 0 })
 
         const tl = gsap.timeline({
           scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none none' },
         })
-        tl.to(q('.category-fade-in'), {
-          y: 0,
-          autoAlpha: 1,
-          duration: 1.0,
-          ease: 'power4.out',
-        })
+        tl.to(q('.category-glow'), { autoAlpha: 1, duration: 1.6, ease: 'power2.out' })
+          .to(q('.category-watermark'), { autoAlpha: 1, scale: 1, duration: 1.4, ease: 'power3.out' }, '<')
+          .to(q('.category-fade-in'), {
+            y: 0,
+            autoAlpha: 1,
+            duration: 1.0,
+            ease: 'power4.out',
+          }, '<0.2')
           .to(q('.category-divider'), { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, '<0.2')
           .to(q('.category-chip'), { y: 0, autoAlpha: 1, stagger: 0.06, duration: 0.7, ease: 'power3.out' }, '<0.1')
           .to(
@@ -114,8 +124,35 @@ export default function CategoryShowcase() {
             '<'
           )
 
+        const breathe = gsap.to(q('.category-glow'), {
+          scale: 1.08,
+          duration: 6,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        })
+
         return () => {
           tl.kill()
+          breathe.kill()
+        }
+      })
+
+      mm.add('(pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
+        const glowX = gsap.quickTo(q('.category-glow'), 'x', { duration: 1.4, ease: 'power3.out' })
+        const glowY = gsap.quickTo(q('.category-glow'), 'y', { duration: 1.4, ease: 'power3.out' })
+
+        const onMove = (e: MouseEvent) => {
+          const rect = section.getBoundingClientRect()
+          const nx = (e.clientX - rect.left) / rect.width - 0.5
+          const ny = (e.clientY - rect.top) / rect.height - 0.5
+          glowX(nx * 36)
+          glowY(ny * 28)
+        }
+        section.addEventListener('mousemove', onMove)
+
+        return () => {
+          section.removeEventListener('mousemove', onMove)
         }
       })
     },
@@ -123,8 +160,20 @@ export default function CategoryShowcase() {
   )
 
   return (
-    <section id="categorias" ref={sectionRef} className="bg-black py-28 lg:py-36 px-4 lg:px-6">
-      <div className="max-w-[1400px] mx-auto">
+    <section
+      id="categorias"
+      ref={sectionRef}
+      className="relative overflow-hidden bg-black py-28 lg:py-36 px-4 lg:px-6"
+    >
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="category-glow absolute top-[-12%] left-[-8%] w-[460px] h-[460px] rounded-full bg-white/[0.07] blur-[100px]" />
+        <div className="category-glow absolute bottom-[-18%] right-[-10%] w-[520px] h-[520px] rounded-full bg-white/[0.05] blur-[110px]" />
+        <p className="category-watermark absolute inset-0 flex items-center justify-center font-cormorant font-light text-white/[0.045] tracking-[0.35em] uppercase select-none leading-none whitespace-nowrap text-[11vw]">
+          {category.label}
+        </p>
+      </div>
+
+      <div className="relative z-10 max-w-[1400px] mx-auto">
         <p className="category-fade-in font-sans text-[11px] tracking-[0.35em] text-white/45 uppercase mb-4">
           Explora por categoría
         </p>

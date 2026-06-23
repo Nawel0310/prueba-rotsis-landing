@@ -18,23 +18,44 @@ export default function ClosingCTA() {
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         gsap.set(q('.closing-fade-in'), { y: 20, autoAlpha: 0 })
         gsap.set(q('.closing-watermark'), { autoAlpha: 0, x: 40 })
+        gsap.set(q('.closing-glow'), { autoAlpha: 0, scale: 0.9 })
+        gsap.set(q('.closing-ring'), { autoAlpha: 0, scale: 0.85 })
 
         const tl = gsap.timeline({
           scrollTrigger: { trigger: section, start: 'top 70%', toggleActions: 'play none none none' },
         })
-        tl.to(q('.closing-watermark'), { autoAlpha: 1, x: 0, duration: 1.4, ease: 'power3.out' }).to(
-          q('.closing-fade-in'),
-          { y: 0, autoAlpha: 1, stagger: 0.1, duration: 1.0, ease: 'power3.out' },
-          '<0.2'
-        )
+        tl.to(q('.closing-glow'), { autoAlpha: 1, scale: 1, duration: 1.8, ease: 'power2.out' })
+          .to(q('.closing-ring'), { autoAlpha: 1, scale: 1, duration: 1.6, ease: 'power3.out' }, '<0.1')
+          .to(q('.closing-watermark'), { autoAlpha: 1, x: 0, duration: 1.4, ease: 'power3.out' }, '<')
+          .to(
+            q('.closing-fade-in'),
+            { y: 0, autoAlpha: 1, stagger: 0.1, duration: 1.0, ease: 'power3.out' },
+            '<0.2'
+          )
+
+        const breathe = gsap.to(q('.closing-glow'), {
+          scale: 1.1,
+          duration: 5,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        })
+        const rotate = gsap.to(q('.closing-ring'), {
+          rotation: 360,
+          duration: 50,
+          ease: 'none',
+          repeat: -1,
+        })
 
         return () => {
           tl.kill()
+          breathe.kill()
+          rotate.kill()
         }
       })
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set(q('.closing-fade-in, .closing-watermark'), { autoAlpha: 1 })
+        gsap.set(q('.closing-fade-in, .closing-watermark, .closing-glow'), { autoAlpha: 1 })
       })
 
       mm.add('(pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
@@ -43,7 +64,20 @@ export default function ClosingCTA() {
           y: gsap.quickTo(ctaRef.current, 'y', { duration: 0.4, ease: 'power3.out' }),
         }
 
+        const glowX = gsap.quickTo(q('.closing-glow'), 'x', { duration: 1.6, ease: 'power3.out' })
+        const glowY = gsap.quickTo(q('.closing-glow'), 'y', { duration: 1.6, ease: 'power3.out' })
+
+        const onMove = (e: MouseEvent) => {
+          const rect = section.getBoundingClientRect()
+          const nx = (e.clientX - rect.left) / rect.width - 0.5
+          const ny = (e.clientY - rect.top) / rect.height - 0.5
+          glowX(nx * 40)
+          glowY(ny * 32)
+        }
+        section.addEventListener('mousemove', onMove)
+
         return () => {
+          section.removeEventListener('mousemove', onMove)
           ctaQuickRef.current = null
         }
       })
@@ -71,6 +105,8 @@ export default function ClosingCTA() {
       className="relative min-h-[70vh] lg:min-h-screen flex items-center justify-center bg-black overflow-hidden px-4"
     >
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden w-full flex items-center justify-center">
+        <div className="closing-glow absolute w-[560px] h-[560px] lg:w-[680px] lg:h-[680px] rounded-full bg-white/[0.07] blur-[120px]" />
+        <div className="closing-ring absolute w-[420px] h-[420px] lg:w-[520px] lg:h-[520px] rounded-full border border-white/10" />
         <p className="closing-watermark font-cormorant font-light text-white/[0.05] tracking-[0.4em] uppercase select-none leading-none whitespace-nowrap text-[14vw]">
           EXCLUSIVO
         </p>
