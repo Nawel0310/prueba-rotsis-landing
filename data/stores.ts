@@ -9,6 +9,7 @@ export interface Store {
   id: string
   name: string
   logoPath: string
+  description?: string
   products: Product[]
 }
 
@@ -21,6 +22,7 @@ export const stores: Store[] = [
     id: 'zara',
     name: 'ZARA',
     logoPath: '/images/iconos/zara_icon.webp',
+    description: 'Moda contemporánea con líneas atemporales y materiales de calidad superior.',
     products: [
       // 1594938298603 → 404, replaced with windrunner jacket (fashion outerwear)
       { name: 'Blazer Structured', price: '$79,99', imageUrl: u('1476480862126-209bfaa8edc8'), description: 'Corte sastre con hombros marcados y forro interior en satén.' },
@@ -59,6 +61,7 @@ export const stores: Store[] = [
     id: 'nike',
     name: 'NIKE',
     logoPath: '/images/iconos/nike_icon.png',
+    description: 'Innovación deportiva de alto rendimiento para atletas y estilo de vida activo.',
     products: [
       { name: 'Air Max 270', price: '$149,99', imageUrl: u('1542291026-7eec264c27ff'), description: 'Unidad Air de gran volumen para máxima absorción de impacto.' },
       { name: 'Dri-FIT Training Tee', price: '$34,99', imageUrl: u('1552902865-b72c031ac5ea'), description: 'Tejido de secado rápido con paneles de ventilación estratégicos.' },
@@ -78,6 +81,7 @@ export const stores: Store[] = [
     id: 'adidas',
     name: 'ADIDAS',
     logoPath: '/images/iconos/adidas_icon.png',
+    description: 'Diseño deportivo icónico que fusiona herencia de marca y tecnología de punta.',
     products: [
       // 1606890737304 → 404, replaced with white athletic shoe
       { name: 'Ultraboost 23', price: '$179,99', imageUrl: u('1526947425960-945c6e72858f'), description: 'Entresuela Boost con retorno de energía en cada pisada.' },
@@ -96,6 +100,7 @@ export const stores: Store[] = [
     id: 'apple',
     name: 'APPLE STORE',
     logoPath: '/images/iconos/apple_store_icon.png',
+    description: 'Tecnología de precisión con diseño minimalista y experiencia premium.',
     products: [
       // 1556742111 → 404, replaced with iPad (tablet = phone-like device)
       { name: 'iPhone 16 Pro Max', price: '$1.229,00', imageUrl: u('1544244015-0df4b3ffc6b0'), description: 'Chasis de titanio grado aeroespacial, sistema de cámaras Pro.' },
@@ -115,6 +120,7 @@ export const stores: Store[] = [
     id: 'sephora',
     name: 'SEPHORA',
     logoPath: '/images/iconos/sepora_icon.jpg',
+    description: 'Belleza de lujo curada de las casas más exclusivas del mundo.',
     products: [
       { name: 'Charlotte Tilbury Foundation', price: '$39,99', imageUrl: u('1596462502278-27bfdc403348'), description: 'Cobertura media buildable con acabado luminoso natural.' },
       // 1616683693104 → 404, replaced with beauty flat lay

@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Video from '@/components/Video'
 import { gsap, useGSAP } from '@/lib/gsap'
 import { stores, getAdjacentStores, cycleDir, type Store } from '@/data/stores'
+import { useProductModal } from '@/components/ProductModalProvider'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -46,6 +47,7 @@ function SideLogoPanel({
 
 // ─── Main hero ───────────────────────────────────────────────────────────────
 export default function HeroCatalog() {
+  const { open } = useProductModal()
   const outerRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -328,7 +330,7 @@ export default function HeroCatalog() {
     <div ref={outerRef}>
       <div
         ref={heroRef}
-        className="relative h-screen w-full overflow-hidden bg-black"
+        className="relative h-[calc(100vh-5rem)] w-full overflow-hidden bg-black"
       >
         {/* ── Background video ─────────────────────────────────────────── */}
         <Video
@@ -437,6 +439,15 @@ export default function HeroCatalog() {
               {store.products.map((product, i) => (
                 <div
                   key={`${currentIndex}-p${i}`}
+                  onClick={() =>
+                    open({
+                      name: product.name,
+                      price: product.price,
+                      imageUrl: product.imageUrl,
+                      description: product.description,
+                      storeName: store.name,
+                    })
+                  }
                   className="product-card group relative bg-black/45 backdrop-blur-sm border border-white/15 rounded-md overflow-hidden cursor-pointer hover:bg-black/60 hover:border-white/50 transition-all duration-500 ease-out"
                   style={{ clipPath: "inset(0% 0% 0% 0%)" }}
                 >

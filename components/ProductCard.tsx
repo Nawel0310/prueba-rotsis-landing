@@ -6,18 +6,29 @@ export default function ProductCard({
   price,
   imageUrl,
   aspect = 'portrait',
+  theme = 'dark',
   className = '',
+  onClick,
 }: {
   name: string
   brandLine?: string
   price: string
   imageUrl: string
   aspect?: 'portrait' | 'square'
+  theme?: 'dark' | 'light'
   className?: string
+  onClick?: () => void
 }) {
+  const isLight = theme === 'light'
+
   return (
     <div
-      className={`product-card-base group relative bg-black/45 backdrop-blur-sm border border-white/15 rounded-md overflow-hidden cursor-pointer hover:bg-black/60 hover:border-white/50 transition-all duration-500 ease-out hover:-translate-y-1 ${className}`}
+      onClick={onClick}
+      className={`product-card-base group relative backdrop-blur-sm rounded-md overflow-hidden cursor-pointer transition-all duration-500 ease-out hover:-translate-y-1 ${
+        isLight
+          ? 'bg-white/80 border border-black/10 hover:bg-white hover:border-black/25 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.14)]'
+          : 'bg-black/45 border border-white/15 hover:bg-black/60 hover:border-white/50'
+      } ${className}`}
     >
       <div className={`relative w-full ${aspect === 'portrait' ? 'aspect-[3/4]' : 'aspect-[5/4]'} overflow-hidden`}>
         <Image
@@ -31,14 +42,26 @@ export default function ProductCard({
       </div>
       <div className="px-4 pt-3 pb-4">
         {brandLine && (
-          <p className="font-sans text-[10px] tracking-[0.25em] text-white/45 uppercase mb-1.5">
+          <p
+            className={`font-sans text-[10px] tracking-[0.25em] uppercase mb-1.5 ${
+              isLight ? 'text-black/45' : 'text-white/45'
+            }`}
+          >
             {brandLine}
           </p>
         )}
-        <p className="text-white/90 text-[15px] leading-snug tracking-[0.01em] line-clamp-2 min-h-[2.6em] font-sans">
+        <p
+          className={`text-[15px] leading-snug tracking-[0.01em] line-clamp-2 min-h-[2.6em] font-sans ${
+            isLight ? 'text-black/80' : 'text-white/90'
+          }`}
+        >
           {name}
         </p>
-        <p className="font-sans font-semibold text-white text-base tracking-[0.03em] mt-2 leading-none">
+        <p
+          className={`font-sans font-semibold text-base tracking-[0.03em] mt-2 leading-none ${
+            isLight ? 'text-black' : 'text-white'
+          }`}
+        >
           {price}
         </p>
       </div>

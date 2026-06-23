@@ -8,8 +8,8 @@ export default function Home() {
   return (
     <main>
       <HeroCatalog />
-      <StoreShowcase />
       <CategoryShowcase />
+      <StoreShowcase />
       <ConciergeSection />
       <ClosingCTA />
     </main>

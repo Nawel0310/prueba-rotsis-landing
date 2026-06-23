@@ -5,8 +5,10 @@ import { flushSync } from 'react-dom'
 import { gsap, useGSAP } from '@/lib/gsap'
 import { categories } from '@/data/categories'
 import ProductCard from './ProductCard'
+import { useProductModal } from './ProductModalProvider'
 
 export default function CategoryShowcase() {
+  const { open } = useProductModal()
   const sectionRef = useRef<HTMLDivElement>(null)
   const activeIndexRef = useRef(0)
   const reducedMotionRef = useRef(false)
@@ -121,7 +123,7 @@ export default function CategoryShowcase() {
   )
 
   return (
-    <section ref={sectionRef} className="bg-black py-28 lg:py-36 px-4 lg:px-6">
+    <section id="categorias" ref={sectionRef} className="bg-black py-28 lg:py-36 px-4 lg:px-6">
       <div className="max-w-[1400px] mx-auto">
         <p className="category-fade-in font-sans text-[11px] tracking-[0.35em] text-white/45 uppercase mb-4">
           Explora por categoría
@@ -169,6 +171,14 @@ export default function CategoryShowcase() {
               imageUrl={product.imageUrl}
               aspect="portrait"
               className="category-product-card"
+              onClick={() =>
+                open({
+                  name: product.name,
+                  price: product.price,
+                  imageUrl: product.imageUrl,
+                  storeName: product.brandLine,
+                })
+              }
             />
           ))}
         </div>
