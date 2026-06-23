@@ -170,6 +170,7 @@ export default function CategoryShowcase() {
               price={product.price}
               imageUrl={product.imageUrl}
               aspect="portrait"
+              theme="light"
               className="category-product-card"
               onClick={() =>
                 open({
