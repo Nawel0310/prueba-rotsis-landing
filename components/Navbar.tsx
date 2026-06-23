@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useLenis } from 'lenis/react'
+import { useCart } from './CartProvider'
 
 const LINKS = [
   { id: 'categorias', label: 'Categorías' },
@@ -11,6 +12,7 @@ const LINKS = [
 
 export default function Navbar() {
   const lenis = useLenis()
+  const { itemCount, openDrawer } = useCart()
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -100,6 +102,23 @@ export default function Navbar() {
               <circle cx="8" cy="8" r="6.2" />
               <line x1="12.6" y1="12.6" x2="17.5" y2="17.5" />
             </svg>
+          </button>
+
+          <button
+            aria-label="Ver carrito"
+            onClick={openDrawer}
+            className="relative text-white/70 hover:text-white transition-colors duration-300 cursor-pointer shrink-0 ml-5"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 5h2l1.4 9.2A2 2 0 0 0 8.4 16h7.2a2 2 0 0 0 2-1.7L19 7H5" />
+              <circle cx="8" cy="18" r="1" />
+              <circle cx="16" cy="18" r="1" />
+            </svg>
+            {itemCount > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full border border-white text-white text-[10px] font-sans leading-none bg-black">
+                {itemCount}
+              </span>
+            )}
           </button>
 
           <button className="hidden lg:inline-flex group relative overflow-hidden font-bebas text-[11px] tracking-[0.3em] px-6 py-2.5 border border-white/70 text-white cursor-pointer shrink-0 ml-5">

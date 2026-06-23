@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap'
 import { getFeaturedStores } from '@/data/stores'
@@ -16,6 +17,7 @@ const STORE_BACKGROUNDS: Record<string, string> = {
 }
 
 export default function StoreShowcase() {
+  const router = useRouter()
   const { open } = useProductModal()
   const sectionRef = useRef<HTMLDivElement>(null)
   const blockRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -144,7 +146,10 @@ export default function StoreShowcase() {
                 </div>
 
                 <div className="store-block-fade flex justify-center mt-10 lg:mt-12">
-                  <button className="group relative overflow-hidden font-bebas text-base lg:text-lg tracking-[0.4em] px-12 lg:px-16 py-3.5 lg:py-4 border border-black/80 text-black cursor-pointer">
+                  <button
+                    onClick={() => router.push(`/tienda/${store.id}`)}
+                    className="group relative overflow-hidden font-bebas text-base lg:text-lg tracking-[0.4em] px-12 lg:px-16 py-3.5 lg:py-4 border border-black/80 text-black cursor-pointer"
+                  >
                     <span className="absolute inset-0 bg-black origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
                     <span className="relative z-10 group-hover:text-white transition-colors duration-500">
                       ACCEDER A LA TIENDA

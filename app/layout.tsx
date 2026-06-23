@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Bebas_Neue, Inter } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
 import Navbar from "@/components/Navbar";
 import { ProductModalProvider } from "@/components/ProductModalProvider";
+import { CartProvider } from "@/components/CartProvider";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -44,8 +45,10 @@ export default function RootLayout({
       <body>
         <SmoothScroll>
           <ProductModalProvider>
-            <Navbar />
-            {children}
+            <CartProvider>
+              <Navbar />
+              {children}
+            </CartProvider>
           </ProductModalProvider>
         </SmoothScroll>
       </body>

@@ -1,7 +1,9 @@
 export interface Product {
+  slug: string
   name: string
   price: string
   imageUrl: string
+  images: string[]
   description?: string
 }
 
@@ -13,11 +15,16 @@ export interface Store {
   products: Product[]
 }
 
+type RawProduct = Omit<Product, 'slug' | 'images'>
+interface RawStore extends Omit<Store, 'products'> {
+  products: RawProduct[]
+}
+
 function u(id: string) {
   return `https://images.unsplash.com/photo-${id}?w=300&h=300&fit=crop&q=80`
 }
 
-export const stores: Store[] = [
+const rawStores: RawStore[] = [
   {
     id: 'zara',
     name: 'ZARA',
@@ -156,6 +163,43 @@ export const stores: Store[] = [
     ],
   },
 ]
+
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+function gallery(primary: string, name: string): string[] {
+  const seed = encodeURIComponent(name.toLowerCase().replace(/\s+/g, '-'))
+  return [primary, `https://picsum.photos/seed/${seed}-2/600/600`, `https://picsum.photos/seed/${seed}-3/600/600`]
+}
+
+export const stores: Store[] = rawStores.map((store) => ({
+  ...store,
+  products: store.products.map((product) => ({
+    ...product,
+    slug: slugify(product.name),
+    images: gallery(product.imageUrl, product.name),
+  })),
+}))
+
+export function getStoreBySlug(slug: string): Store | undefined {
+  return stores.find((s) => s.id === slug)
+}
+
+export function getProductBySlug(storeSlug: string, productSlug: string) {
+  const store = getStoreBySlug(storeSlug)
+  const product = store?.products.find((p) => p.slug === productSlug)
+  return store && product ? { store, product } : undefined
+}
+
+export function getRelatedProducts(storeSlug: string, productSlug: string, count = 4): Product[] {
+  const store = getStoreBySlug(storeSlug)
+  if (!store) return []
+  return store.products.filter((p) => p.slug !== productSlug).slice(0, count)
+}
 
 export function getAdjacentStores(index: number) {
   const total = stores.length

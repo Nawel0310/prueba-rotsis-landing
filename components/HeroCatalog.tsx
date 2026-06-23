@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from 'react'
 import { flushSync } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Video from '@/components/Video'
 import { gsap, useGSAP } from '@/lib/gsap'
@@ -47,6 +48,7 @@ function SideLogoPanel({
 
 // ─── Main hero ───────────────────────────────────────────────────────────────
 export default function HeroCatalog() {
+  const router = useRouter()
   const { open } = useProductModal()
   const outerRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
@@ -480,6 +482,7 @@ export default function HeroCatalog() {
               ref={ctaRef}
               onMouseMove={onCtaMove}
               onMouseLeave={onCtaLeave}
+              onClick={() => router.push(`/tienda/${store.id}`)}
               className="hero-fade-in group relative overflow-hidden font-bebas text-lg lg:text-xl xl:text-2xl tracking-[0.5em] px-16 lg:px-24 py-4 lg:py-5 border border-white/80 text-white cursor-pointer"
             >
               <span className="absolute inset-0 bg-white origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
