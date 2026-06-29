@@ -1,12 +1,13 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap'
 import { getFeaturedStores } from '@/data/stores'
 import ProductCard from './ProductCard'
-import { useProductModal } from './ProductModalProvider'
+
+const RUBROS = ['Todos', 'Moda', 'Deportes', 'Tecnología', 'Belleza', 'Lifestyle']
 
 const STORE_BACKGROUNDS: Record<string, string> = {
   zara: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&h=900&fit=crop&q=80',
@@ -18,10 +19,11 @@ const STORE_BACKGROUNDS: Record<string, string> = {
 
 export default function StoreShowcase() {
   const router = useRouter()
-  const { open } = useProductModal()
   const sectionRef = useRef<HTMLDivElement>(null)
   const blockRefs = useRef<(HTMLDivElement | null)[]>([])
-  const stores = getFeaturedStores()
+  const [rubroFilter, setRubroFilter] = useState('Todos')
+  const allStores = getFeaturedStores()
+  const stores = rubroFilter === 'Todos' ? allStores : allStores.filter((s) => s.category === rubroFilter)
 
   useGSAP(
     () => {
@@ -70,11 +72,33 @@ export default function StoreShowcase() {
     <section id="tiendas" ref={sectionRef} className="bg-white py-28 lg:py-36 px-4 lg:px-6">
       <div className="max-w-[1400px] mx-auto">
         <p className="font-sans text-[11px] tracking-[0.35em] text-black/45 uppercase mb-4">Tiendas Seleccionadas</p>
-        <h2 className="font-cormorant font-light text-black uppercase tracking-[0.15em] text-4xl lg:text-6xl mb-20 lg:mb-28">
+        <h2 className="font-cormorant font-light text-black uppercase tracking-[0.15em] text-4xl lg:text-6xl mb-10 lg:mb-14">
           Nuestras Tiendas
         </h2>
 
+        {/* Rubro filter chips */}
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-16 lg:mb-24">
+          {RUBROS.map((r) => (
+            <button
+              key={r}
+              onClick={() => setRubroFilter(r)}
+              className={`font-sans text-[10px] sm:text-xs tracking-[0.2em] uppercase px-3 sm:px-4 py-2 border transition-all duration-300 cursor-pointer ${
+                r === rubroFilter
+                  ? 'bg-black text-white border-black'
+                  : 'border-black/25 text-black/45 hover:border-black/50 hover:text-black/70'
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+
         <div className="flex flex-col gap-24 lg:gap-32">
+          {stores.length === 0 && (
+            <div className="py-20 text-center">
+              <p className="font-cormorant font-light text-black/30 text-3xl tracking-[0.15em] uppercase">Sin tiendas en esta categoría</p>
+            </div>
+          )}
           {stores.map((store, si) => (
             <div
               key={store.id}
@@ -132,15 +156,7 @@ export default function StoreShowcase() {
                       aspect="square"
                       theme="light"
                       className="store-block-card"
-                      onClick={() =>
-                        open({
-                          name: product.name,
-                          price: product.price,
-                          imageUrl: product.imageUrl,
-                          description: product.description,
-                          storeName: store.name,
-                        })
-                      }
+                      onClick={() => router.push(`/tienda/${store.id}/producto/${product.slug}`)}
                     />
                   ))}
                 </div>
@@ -159,6 +175,19 @@ export default function StoreShowcase() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Mostrar todas las tiendas */}
+        <div className="flex justify-center mt-16 lg:mt-20">
+          <button
+            onClick={() => router.push('/tiendas')}
+            className="group relative overflow-hidden font-bebas text-sm lg:text-base tracking-[0.4em] px-10 lg:px-14 py-3 lg:py-3.5 border border-black/50 text-black cursor-pointer"
+          >
+            <span className="absolute inset-0 bg-black origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
+            <span className="relative z-10 group-hover:text-white transition-colors duration-500">
+              MOSTRAR TODAS LAS TIENDAS
+            </span>
+          </button>
         </div>
       </div>
     </section>

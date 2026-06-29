@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { useLenis } from 'lenis/react'
 import { useCart } from './CartProvider'
 
@@ -11,12 +12,21 @@ const LINKS = [
 ]
 
 export default function Navbar() {
+  const router = useRouter()
+  const pathname = usePathname()
   const lenis = useLenis()
   const { itemCount, openDrawer } = useCart()
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+
+  const doSearch = () => {
+    if (!query.trim()) return
+    router.push(`/buscar?q=${encodeURIComponent(query.trim())}`)
+    setSearchOpen(false)
+    setQuery('')
+  }
 
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus()
@@ -40,6 +50,14 @@ export default function Navbar() {
 
   const goTo = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
+    if (id === 'categorias') {
+      router.push('/buscar')
+      return
+    }
+    if (id === 'tiendas') {
+      router.push('/tiendas')
+      return
+    }
     const el = document.getElementById(id)
     if (!el) return
     if (lenis) {
@@ -49,10 +67,14 @@ export default function Navbar() {
     }
   }
 
-  const goTop = (e: React.MouseEvent) => {
+  const goHome = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (lenis) lenis.scrollTo(0, { duration: 1.2 })
-    else window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (pathname === '/') {
+      if (lenis) lenis.scrollTo(0, { duration: 1.2 })
+      else window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      router.push('/')
+    }
   }
 
   return (
@@ -60,7 +82,7 @@ export default function Navbar() {
       <div className="max-w-[1600px] mx-auto h-20 px-4 lg:px-8 flex items-center justify-between gap-6">
         <a
           href="#"
-          onClick={goTop}
+          onClick={goHome}
           className="font-bebas text-lg lg:text-xl tracking-[0.35em] text-white shrink-0 cursor-pointer"
         >
           ROTSIS
@@ -86,7 +108,7 @@ export default function Navbar() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') setSearchOpen(false)
+              if (e.key === 'Enter') doSearch()
             }}
             placeholder="Buscar productos, tiendas, categorías"
             className={`font-sans text-sm text-white placeholder:text-white/35 bg-transparent border-b border-white/30 focus:border-white outline-none transition-all duration-500 ease-out ${
@@ -95,7 +117,13 @@ export default function Navbar() {
           />
           <button
             aria-label="Buscar"
-            onClick={() => setSearchOpen((v) => !v)}
+            onClick={() => {
+              if (query.trim()) {
+                doSearch()
+              } else {
+                setSearchOpen((v) => !v)
+              }
+            }}
             className="text-white/70 hover:text-white transition-colors duration-300 cursor-pointer shrink-0"
           >
             <svg width="19" height="19" viewBox="0 0 19 19" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">

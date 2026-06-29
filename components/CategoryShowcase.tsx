@@ -2,26 +2,63 @@
 
 import { useRef, useState, useCallback } from 'react'
 import { flushSync } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import { gsap, useGSAP } from '@/lib/gsap'
 import { categories } from '@/data/categories'
 import ProductCard from './ProductCard'
-import { useProductModal } from './ProductModalProvider'
+import { parsePrice } from '@/lib/search'
+import { slugify } from '@/data/stores'
+
+const BRAND_STORE_ID: Record<string, string> = {
+  'ATELIER FORGE': 'atelier-forge',
+  'CAVE NOIRE': 'cave-noire',
+  'MAISON BRÜHL': 'maison-bruhl',
+  'NORDLINE AUDIO': 'nordline-audio',
+  'OPTIK WERK': 'optik-werk',
+  'VESPER DIGITAL': 'vesper-digital',
+  'STUDIO LUMEN': 'studio-lumen',
+  'MARBLE & OAK': 'marble-oak',
+  'AQUA LUME': 'aqua-lume',
+  'PIETRA BAGNO': 'pietra-bagno',
+  'MAISON VESTE': 'maison-veste',
+  'ATELIER NOIR': 'atelier-noir',
+}
 
 export default function CategoryShowcase() {
-  const { open } = useProductModal()
+  const router = useRouter()
   const sectionRef = useRef<HTMLDivElement>(null)
   const activeIndexRef = useRef(0)
   const reducedMotionRef = useRef(false)
   const activeTlRef = useRef<gsap.core.Timeline | null>(null)
   const underlineRefs = useRef<(HTMLSpanElement | null)[]>([])
   const [activeIndex, setActiveIndex] = useState(0)
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [sort, setSort] = useState<'default' | 'asc' | 'desc'>('default')
 
   const category = categories[activeIndex]
+
+  const filteredProducts = category.products
+    .filter((p) => {
+      const n = parsePrice(p.price)
+      if (minPrice && n < parseFloat(minPrice)) return false
+      if (maxPrice && n > parseFloat(maxPrice)) return false
+      return true
+    })
+    .sort((a, b) => {
+      if (sort === 'asc') return parsePrice(a.price) - parsePrice(b.price)
+      if (sort === 'desc') return parsePrice(b.price) - parsePrice(a.price)
+      return 0
+    })
 
   const switchCategory = useCallback((newIndex: number) => {
     if (newIndex === activeIndexRef.current) return
     const section = sectionRef.current
     if (!section) return
+
+    setMinPrice('')
+    setMaxPrice('')
+    setSort('default')
 
     const prevIndex = activeIndexRef.current
     activeIndexRef.current = newIndex
@@ -186,14 +223,14 @@ export default function CategoryShowcase() {
         </div>
 
         {/* Category switcher */}
-        <div role="tablist" className="flex items-center gap-8 lg:gap-12 overflow-x-auto pb-1 mb-12 lg:mb-16">
+        <div role="tablist" className="flex flex-wrap items-center gap-x-6 gap-y-3 sm:gap-x-10 lg:gap-x-14 pb-1 mb-12 lg:mb-16">
           {categories.map((c, i) => (
             <button
               key={c.id}
               role="tab"
               aria-selected={i === activeIndex}
               onClick={() => switchCategory(i)}
-              className={`category-chip shrink-0 whitespace-nowrap relative font-sans text-sm lg:text-base tracking-[0.15em] uppercase px-1 pb-3 cursor-pointer transition-colors duration-500 ${
+              className={`category-chip shrink-0 whitespace-nowrap relative font-sans text-xs sm:text-sm lg:text-base tracking-[0.12em] sm:tracking-[0.15em] uppercase px-1 pb-2.5 sm:pb-3 cursor-pointer transition-colors duration-500 ${
                 i === activeIndex ? 'text-white' : 'text-white/40 hover:text-white/70'
               }`}
             >
@@ -209,9 +246,60 @@ export default function CategoryShowcase() {
           ))}
         </div>
 
+        {/* Filter bar */}
+        <div className="flex flex-wrap items-center gap-4 lg:gap-6 mb-10 border-t border-white/10 pt-6">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-sans text-[10px] tracking-[0.3em] text-white/40 uppercase shrink-0">Precio</span>
+            <input
+              type="number"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              placeholder="Mín"
+              className="w-20 bg-transparent border-b border-white/20 focus:border-white/60 outline-none font-sans text-sm text-white placeholder:text-white/25 py-1 transition-colors duration-300"
+            />
+            <span className="text-white/25 text-xs">—</span>
+            <input
+              type="number"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              placeholder="Máx"
+              className="w-20 bg-transparent border-b border-white/20 focus:border-white/60 outline-none font-sans text-sm text-white placeholder:text-white/25 py-1 transition-colors duration-300"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            {([['default', 'Relevancia'], ['asc', 'Menor precio'], ['desc', 'Mayor precio']] as const).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setSort(val)}
+                className={`font-sans text-[10px] tracking-[0.2em] uppercase px-3 py-1.5 border transition-all duration-300 cursor-pointer ${
+                  sort === val
+                    ? 'border-white/60 text-white bg-white/10'
+                    : 'border-white/15 text-white/35 hover:border-white/35 hover:text-white/60'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {(minPrice || maxPrice || sort !== 'default') && (
+            <button
+              onClick={() => { setMinPrice(''); setMaxPrice(''); setSort('default') }}
+              className="font-sans text-[10px] tracking-[0.2em] uppercase text-white/30 hover:text-white/60 transition-colors duration-300 cursor-pointer"
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
+
         {/* Product grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-5">
-          {category.products.map((product, i) => (
+          {filteredProducts.length === 0 ? (
+            <div className="col-span-full py-16 text-center">
+              <p className="font-cormorant font-light text-white/40 text-2xl tracking-[0.15em] uppercase">Sin resultados</p>
+              <p className="font-sans text-white/25 text-sm mt-2">Intentá con otro rango de precio</p>
+            </div>
+          ) : null}
+          {filteredProducts.map((product, i) => (
             <ProductCard
               key={`${category.id}-${i}`}
               name={product.name}
@@ -221,14 +309,12 @@ export default function CategoryShowcase() {
               aspect="portrait"
               theme="light"
               className="category-product-card"
-              onClick={() =>
-                open({
-                  name: product.name,
-                  price: product.price,
-                  imageUrl: product.imageUrl,
-                  storeName: product.brandLine,
-                })
-              }
+              onClick={() => {
+                const storeId = BRAND_STORE_ID[product.brandLine]
+                if (storeId) {
+                  router.push(`/tienda/${storeId}/producto/${slugify(product.name)}`)
+                }
+              }}
             />
           ))}
         </div>

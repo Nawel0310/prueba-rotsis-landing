@@ -6,8 +6,17 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Video from '@/components/Video'
 import { gsap, useGSAP } from '@/lib/gsap'
-import { stores, getAdjacentStores, cycleDir, type Store } from '@/data/stores'
-import { useProductModal } from '@/components/ProductModalProvider'
+import { heroStores as stores, getAdjacentHeroStores as getAdjacentStores, cycleDir, type Store } from '@/data/stores'
+const ChevronLeft = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="13 16 7 10 13 4" />
+  </svg>
+)
+const ChevronRight = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="7 4 13 10 7 16" />
+  </svg>
+)
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -49,7 +58,6 @@ function SideLogoPanel({
 // ─── Main hero ───────────────────────────────────────────────────────────────
 export default function HeroCatalog() {
   const router = useRouter()
-  const { open } = useProductModal()
   const outerRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -62,6 +70,7 @@ export default function HeroCatalog() {
     x: gsap.QuickToFunc
     y: gsap.QuickToFunc
   } | null>(null)
+  const touchStartX = useRef(0)
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const store = stores[currentIndex]
@@ -216,7 +225,7 @@ export default function HeroCatalog() {
   // ── Click navigation ───────────────────────────────────────────────────────
   const goToStore = useCallback((targetIndex: number) => {
     if (targetIndex === currentIndexRef.current) return
-    const dir = cycleDir(currentIndexRef.current, targetIndex)
+    const dir = cycleDir(currentIndexRef.current, targetIndex, stores.length)
     currentIndexRef.current = targetIndex
     transitionToStore(targetIndex, dir)
   }, [transitionToStore])
@@ -328,11 +337,31 @@ export default function HeroCatalog() {
   const nextIndex1 = (currentIndex + 1) % stores.length
   const nextIndex2 = (currentIndex + 2) % stores.length
 
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }, [])
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(delta) < 44) return
+    if (delta < 0) {
+      const ni = (currentIndexRef.current + 1) % stores.length
+      currentIndexRef.current = ni
+      transitionToStore(ni, 'next')
+    } else {
+      const ni = ((currentIndexRef.current - 1) + stores.length) % stores.length
+      currentIndexRef.current = ni
+      transitionToStore(ni, 'prev')
+    }
+  }, [transitionToStore])
+
   return (
     <div ref={outerRef}>
       <div
         ref={heroRef}
-        className="relative h-[calc(100vh-5rem)] w-full overflow-hidden bg-black"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="relative min-h-[calc(100dvh-5rem)] lg:h-[calc(100vh-5rem)] lg:min-h-[600px] w-full overflow-hidden bg-black"
       >
         {/* ── Background video ─────────────────────────────────────────── */}
         <Video
@@ -364,10 +393,26 @@ export default function HeroCatalog() {
           <span className="text-white/30">{pad(stores.length)}</span>
         </div>
 
+        {/* ── Mobile arrows ─────────────────────────────────────────── */}
+        <button
+          onClick={() => goToStore(prevIndex1)}
+          aria-label="Tienda anterior"
+          className="block lg:hidden absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full border border-white/30 bg-black/40 backdrop-blur-sm text-white/70 hover:text-white hover:border-white/60 transition-all duration-300"
+        >
+          <ChevronLeft />
+        </button>
+        <button
+          onClick={() => goToStore(nextIndex1)}
+          aria-label="Tienda siguiente"
+          className="block lg:hidden absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full border border-white/30 bg-black/40 backdrop-blur-sm text-white/70 hover:text-white hover:border-white/60 transition-all duration-300"
+        >
+          <ChevronRight />
+        </button>
+
         {/* ── Grid layout ──────────────────────────────────────────────── */}
-        <div className="relative z-10 h-full grid grid-cols-[90px_115px_1fr_115px_90px] xl:grid-cols-[110px_140px_1fr_140px_110px] 2xl:grid-cols-[130px_160px_1fr_160px_130px] items-center gap-3 px-4 lg:px-6">
+        <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-[90px_115px_1fr_115px_90px] xl:grid-cols-[110px_140px_1fr_140px_110px] 2xl:grid-cols-[130px_160px_1fr_160px_130px] items-center gap-3 px-4 lg:px-6">
           {/* Left far — prev2 */}
-          <div className="h-[44vh] flex items-center justify-center">
+          <div className="hidden lg:flex h-[44vh] items-center justify-center">
             <SideLogoPanel
               store={prev2}
               far
@@ -382,7 +427,7 @@ export default function HeroCatalog() {
           </div>
 
           {/* Left near — prev1 */}
-          <div className="h-[58vh] flex items-center justify-center">
+          <div className="hidden lg:flex h-[58vh] items-center justify-center">
             <SideLogoPanel
               store={prev1}
               perspStyle={{
@@ -398,7 +443,7 @@ export default function HeroCatalog() {
           {/* ── Center content ────────────────────────────────────────── */}
           <div
             ref={centerRef}
-            className="h-full flex flex-col items-center justify-center gap-5 py-6"
+            className="h-full flex flex-col items-center justify-center gap-4 sm:gap-5 py-10 sm:py-6"
           >
             {/* Logo + store name — perspective wrapper for 3D char flip */}
             <div className="flex items-center gap-4 lg:gap-5">
@@ -415,7 +460,7 @@ export default function HeroCatalog() {
 
               {/* perspective on this div enables 3D rotateX on children */}
               <div style={{ perspective: "900px" }}>
-                <h1 className="font-cormorant font-light text-white uppercase leading-none tracking-[0.2em] lg:tracking-[0.28em] text-4xl lg:text-5xl xl:text-[3.5rem] whitespace-nowrap">
+                <h1 className="font-cormorant font-light text-white uppercase leading-none tracking-[0.15em] sm:tracking-[0.2em] lg:tracking-[0.28em] text-2xl sm:text-3xl lg:text-5xl xl:text-[3.5rem] whitespace-nowrap">
                   {store.name.split("").map((char, i) => (
                     <span
                       key={`${currentIndex}-${i}`}
@@ -436,40 +481,32 @@ export default function HeroCatalog() {
               <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/25" />
             </div>
 
-            {/* Products 4×2 */}
-            <div className="grid grid-cols-4 gap-3 lg:gap-4 w-full max-w-3xl xl:max-w-[880px]">
+            {/* Products grid — 2 cols mobile, 4 cols desktop */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 w-full max-w-3xl xl:max-w-[880px]">
               {store.products.map((product, i) => (
                 <div
                   key={`${currentIndex}-p${i}`}
-                  onClick={() =>
-                    open({
-                      name: product.name,
-                      price: product.price,
-                      imageUrl: product.imageUrl,
-                      description: product.description,
-                      storeName: store.name,
-                    })
-                  }
-                  className="product-card group relative bg-black/45 backdrop-blur-sm border border-white/15 rounded-md overflow-hidden cursor-pointer hover:bg-black/60 hover:border-white/50 transition-all duration-500 ease-out"
+                  onClick={() => router.push(`/tienda/${store.id}/producto/${product.slug}`)}
+                  className={`product-card group relative bg-black/45 backdrop-blur-sm border border-white/15 rounded-md overflow-hidden cursor-pointer hover:bg-black/60 hover:border-white/50 transition-all duration-500 ease-out${i >= 4 ? ' hidden sm:block' : ''}`}
                   style={{ clipPath: "inset(0% 0% 0% 0%)" }}
                 >
-                  <div className="relative w-full aspect-[5/4] overflow-hidden">
+                  <div className="relative w-full aspect-square sm:aspect-[5/4] overflow-hidden">
                     <Image
                       src={product.imageUrl}
                       alt={product.name}
                       fill
                       className="product-img object-cover group-hover:scale-[1.05] transition-transform duration-700 ease-out"
-                      sizes="(max-width: 1280px) 18vw, 180px"
+                      sizes="(max-width: 640px) 45vw, (max-width: 1280px) 18vw, 180px"
                     />
                     {/* Legibility gradient */}
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/45 to-transparent pointer-events-none" />
                   </div>
                   {/* Info area */}
-                  <div className="px-5 pt-4 pb-5">
-                    <p className="text-white/90 text-[17px] leading-snug tracking-[0.01em] line-clamp-2 min-h-[2.75em] font-sans">
+                  <div className="px-3 sm:px-5 pt-2 sm:pt-4 pb-3 sm:pb-5">
+                    <p className="text-white/90 text-[13px] sm:text-[17px] leading-snug tracking-[0.01em] line-clamp-2 min-h-[2.4em] sm:min-h-[2.75em] font-sans">
                       {product.name}
                     </p>
-                    <p className="font-sans font-semibold text-white text-lg tracking-[0.03em] mt-3 leading-none">
+                    <p className="font-sans font-semibold text-white text-sm sm:text-lg tracking-[0.03em] mt-1 sm:mt-3 leading-none">
                       {product.price}
                     </p>
                   </div>
@@ -483,7 +520,7 @@ export default function HeroCatalog() {
               onMouseMove={onCtaMove}
               onMouseLeave={onCtaLeave}
               onClick={() => router.push(`/tienda/${store.id}`)}
-              className="hero-fade-in group relative overflow-hidden font-bebas text-lg lg:text-xl xl:text-2xl tracking-[0.5em] px-16 lg:px-24 py-4 lg:py-5 border border-white/80 text-white cursor-pointer"
+              className="hero-fade-in group relative overflow-hidden font-bebas text-base sm:text-lg lg:text-xl xl:text-2xl tracking-[0.3em] sm:tracking-[0.5em] px-8 sm:px-16 lg:px-24 py-3 sm:py-4 lg:py-5 border border-white/80 text-white cursor-pointer"
             >
               <span className="absolute inset-0 bg-white origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
               <span className="relative z-10 group-hover:text-black transition-colors duration-500">
@@ -493,7 +530,7 @@ export default function HeroCatalog() {
           </div>
 
           {/* Right near — next1 */}
-          <div className="h-[58vh] flex items-center justify-center">
+          <div className="hidden lg:flex h-[58vh] items-center justify-center">
             <SideLogoPanel
               store={next1}
               perspStyle={{
@@ -507,7 +544,7 @@ export default function HeroCatalog() {
           </div>
 
           {/* Right far — next2 */}
-          <div className="h-[44vh] flex items-center justify-center">
+          <div className="hidden lg:flex h-[44vh] items-center justify-center">
             <SideLogoPanel
               store={next2}
               far
