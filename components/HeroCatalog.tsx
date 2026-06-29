@@ -453,8 +453,8 @@ export default function HeroCatalog() {
                   alt={store.name}
                   width={52}
                   height={52}
+                  priority
                   className="store-logo-img object-contain w-[46px] h-[46px] lg:w-[52px] lg:h-[52px] rounded-md"
-                  preload
                 />
               </div>
 

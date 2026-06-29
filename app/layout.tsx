@@ -27,9 +27,34 @@ const inter = Inter({
   display: "swap",
 });
 
+const siteUrl = "https://nawel0310.github.io/prueba-rotsis-landing";
+
 export const metadata: Metadata = {
-  title: "Store Catalog",
-  description: "Premium retail store catalog",
+  title: {
+    default: "ROTSIS — Marketplace de Tiendas Premium",
+    template: "%s | ROTSIS",
+  },
+  description:
+    "Descubrí las mejores tiendas y productos premium en un solo lugar. Moda, tecnología, diseño y más en ROTSIS.",
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    type: "website",
+    siteName: "ROTSIS",
+    title: "ROTSIS — Marketplace de Tiendas Premium",
+    description:
+      "Descubrí las mejores tiendas y productos premium en un solo lugar.",
+    url: siteUrl,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ROTSIS — Marketplace de Tiendas Premium",
+    description:
+      "Descubrí las mejores tiendas y productos premium en un solo lugar.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

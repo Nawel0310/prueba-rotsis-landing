@@ -69,7 +69,7 @@ export default function ConciergeSection() {
   )
 
   return (
-    <section id="concierge" ref={sectionRef} className="relative bg-black overflow-hidden py-28 lg:py-40 px-4 lg:px-6">
+    <section id="nosotros" ref={sectionRef} className="relative bg-black overflow-hidden py-28 lg:py-40 px-4 lg:px-6">
       <div className="absolute -top-[10%] inset-x-0 h-[120%]">
         <div className="concierge-bg relative w-full h-full">
           <Image

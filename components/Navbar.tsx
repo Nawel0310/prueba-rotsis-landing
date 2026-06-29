@@ -8,7 +8,7 @@ import { useCart } from './CartProvider'
 const LINKS = [
   { id: 'categorias', label: 'Categorías' },
   { id: 'tiendas', label: 'Tiendas' },
-  { id: 'concierge', label: 'Concierge' },
+  { id: 'nosotros', label: 'Sobre Nosotros' },
 ]
 
 export default function Navbar() {
@@ -56,6 +56,18 @@ export default function Navbar() {
     }
     if (id === 'tiendas') {
       router.push('/tiendas')
+      return
+    }
+    if (id === 'nosotros') {
+      if (pathname === '/') {
+        const el = document.getElementById('nosotros')
+        if (el) {
+          if (lenis) lenis.scrollTo(el, { offset: -96, duration: 1.3 })
+          else el.scrollIntoView({ behavior: 'smooth' })
+        }
+      } else {
+        router.push('/#nosotros')
+      }
       return
     }
     const el = document.getElementById(id)

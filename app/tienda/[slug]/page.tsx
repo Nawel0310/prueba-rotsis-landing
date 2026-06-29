@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -8,6 +9,29 @@ export const dynamicParams = false
 
 export function generateStaticParams() {
   return stores.map((s) => ({ slug: s.id }))
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const store = getStoreBySlug(slug)
+  if (!store) return {}
+  const title = store.name.charAt(0) + store.name.slice(1).toLowerCase()
+  return {
+    title,
+    description:
+      store.description ??
+      `Explorá los productos de ${store.name} disponibles en ROTSIS.`,
+    openGraph: {
+      title: `${store.name} | ROTSIS`,
+      description:
+        store.description ??
+        `Explorá los productos de ${store.name} disponibles en ROTSIS.`,
+    },
+  }
 }
 
 export default async function StorePage({
@@ -37,6 +61,7 @@ export default async function StorePage({
                 alt={store.name}
                 width={56}
                 height={56}
+                priority
                 className="object-contain max-w-[48px] max-h-[48px] w-full h-full rounded-md"
               />
             </div>

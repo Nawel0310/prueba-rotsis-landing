@@ -83,9 +83,9 @@ export default function ProductDetailView({
                 src={product.images[activeImage]}
                 alt={product.name}
                 fill
+                priority
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                preload={true}
               />
             </div>
             {product.images.length > 1 && (
@@ -99,7 +99,7 @@ export default function ProductDetailView({
                       i === activeImage ? 'border-black/70' : 'border-black/15 hover:border-black/40'
                     }`}
                   >
-                    <Image src={img} alt="" fill className="object-cover" sizes="80px" />
+                    <Image src={img} alt={`${product.name} — imagen ${i + 1}`} fill className="object-cover" sizes="80px" />
                   </button>
                 ))}
               </div>
