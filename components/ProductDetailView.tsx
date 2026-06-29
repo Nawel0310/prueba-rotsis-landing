@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { gsap, useGSAP } from '@/lib/gsap'
+import { useLenis } from 'lenis/react'
 import type { Product, Store } from '@/data/stores'
 import { useCart } from './CartProvider'
 import ProductCard from './ProductCard'
@@ -20,6 +21,16 @@ export default function ProductDetailView({
   const { addItem, openDrawer } = useCart()
   const [activeImage, setActiveImage] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
+  const lenis = useLenis()
+
+  useEffect(() => {
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true })
+    } else {
+      document.documentElement.scrollTop = 0
+    }
+    setActiveImage(0)
+  }, [product.slug])
 
   useGSAP(
     () => {

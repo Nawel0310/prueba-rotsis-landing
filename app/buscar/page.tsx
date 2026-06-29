@@ -48,7 +48,7 @@ function FilterSection({
       active ? 'bg-black border-black' : 'border-black/40 group-hover:border-black/65'
     }`
   const labelClass = (active: boolean) =>
-    `font-sans text-sm transition-colors duration-200 ${active ? 'text-black' : 'text-black/65 group-hover:text-black/90'}`
+    `font-sans text-sm transition-colors duration-200 ${active ? 'text-black' : 'text-black/90 group-hover:text-black/90'}`
 
   if (tab === 'sort') {
     return (
@@ -72,22 +72,22 @@ function FilterSection({
   if (tab === 'price') {
     return (
       <div className="flex flex-col gap-4">
-        <p className="font-sans text-xs text-black/60">Rango de precios (ARS)</p>
+        <p className="font-sans text-xs text-black/90">Rango de precios (ARS)</p>
         <div className="flex items-center gap-3">
           <input
             type="number"
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
             placeholder="Mínimo"
-            className="w-full border-b border-black/20 focus:border-black outline-none font-sans text-sm text-black placeholder:text-black/40 py-1.5 bg-transparent transition-colors duration-200"
+            className="w-full border-b border-black/45 focus:border-black outline-none font-sans text-sm text-black placeholder:text-black/95 py-1.5 bg-transparent transition-colors duration-200"
           />
-          <span className="text-black/40 text-xs shrink-0">—</span>
+          <span className="text-black/95 text-xs shrink-0">—</span>
           <input
             type="number"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
             placeholder="Máximo"
-            className="w-full border-b border-black/20 focus:border-black outline-none font-sans text-sm text-black placeholder:text-black/40 py-1.5 bg-transparent transition-colors duration-200"
+            className="w-full border-b border-black/45 focus:border-black outline-none font-sans text-sm text-black placeholder:text-black/95 py-1.5 bg-transparent transition-colors duration-200"
           />
         </div>
       </div>
@@ -147,12 +147,12 @@ function DesktopSidebar({
   onClear: () => void; hasActiveFilters: boolean
 }) {
   const sectionTitle = (label: string) => (
-    <p className="font-sans text-[10px] tracking-[0.3em] text-black/60 uppercase mb-4">{label}</p>
+    <p className="font-sans text-[10px] tracking-[0.3em] text-black/90 uppercase mb-4">{label}</p>
   )
 
   return (
     <aside className="hidden lg:block w-52 xl:w-60 shrink-0 sticky top-24 self-start">
-      <p className="font-sans text-[10px] tracking-[0.35em] text-black/60 uppercase mb-8">Filtros</p>
+      <p className="font-sans text-[10px] tracking-[0.35em] text-black/90 uppercase mb-8">Filtros</p>
 
       <div className="flex flex-col gap-8">
         <div>
@@ -180,7 +180,7 @@ function DesktopSidebar({
             selectedStores={selectedStores} toggleStore={toggleStore} allCategories={allCategories} allStores={allStores} />
         </div>
         {hasActiveFilters && (
-          <button onClick={onClear} className="font-sans text-[10px] tracking-[0.25em] uppercase text-black/55 hover:text-black/90 transition-colors duration-300 cursor-pointer text-left border-t border-black/15 pt-4">
+          <button onClick={onClear} className="font-sans text-[10px] tracking-[0.25em] uppercase text-black/90 hover:text-black/90 transition-colors duration-300 cursor-pointer text-left border-t border-black/40 pt-4">
             Limpiar filtros
           </button>
         )}
@@ -195,7 +195,7 @@ function ResultCard({ product, onNavigate }: { product: SearchProduct; onNavigat
   return (
     <div
       onClick={onNavigate}
-      className="group relative bg-white border border-black/8 rounded-md overflow-hidden cursor-pointer hover:border-black/20 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-500 ease-out hover:-translate-y-0.5"
+      className="group relative bg-white border border-black/8 rounded-md overflow-hidden cursor-pointer hover:border-black/45 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-500 ease-out hover:-translate-y-0.5"
     >
       <div className="relative w-full aspect-[3/4] overflow-hidden bg-black/5">
         <Image
@@ -206,13 +206,13 @@ function ResultCard({ product, onNavigate }: { product: SearchProduct; onNavigat
           sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 22vw"
         />
         <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-black/15 to-transparent pointer-events-none" />
-        <span className="absolute top-2 left-2 font-sans text-[9px] tracking-[0.2em] uppercase text-black/55 bg-white/80 backdrop-blur-sm px-2 py-1">
+        <span className="absolute top-2 left-2 font-sans text-[9px] tracking-[0.2em] uppercase text-black/90 bg-white/80 backdrop-blur-sm px-2 py-1">
           {product.category}
         </span>
       </div>
       <div className="px-3 pt-3 pb-4">
-        <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-black/60 mb-1">{product.storeName}</p>
-        <p className="font-sans text-sm text-black/80 leading-snug line-clamp-2 min-h-[2.5em]">{product.name}</p>
+        <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-black/90 mb-1">{product.storeName}</p>
+        <p className="font-sans text-sm text-black/95 leading-snug line-clamp-2 min-h-[2.5em]">{product.name}</p>
         <p className="font-sans font-semibold text-black text-sm tracking-[0.02em] mt-2">{product.price}</p>
       </div>
     </div>
@@ -232,7 +232,7 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
       <button
         disabled={page === 1}
         onClick={() => onPage(page - 1)}
-        className="font-sans text-xs tracking-[0.2em] uppercase border border-black/25 px-4 py-2.5 text-black/70 hover:text-black hover:border-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
+        className="font-sans text-xs tracking-[0.2em] uppercase border border-black/50 px-4 py-2.5 text-black/90 hover:text-black hover:border-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
       >
         ← Anterior
       </button>
@@ -241,13 +241,13 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
         const prev = visible[i - 1]
         return (
           <span key={p} className="flex items-center gap-2">
-            {prev && p - prev > 1 && <span className="text-black/45 text-xs">…</span>}
+            {prev && p - prev > 1 && <span className="text-black/85 text-xs">…</span>}
             <button
               onClick={() => onPage(p)}
               className={`w-9 h-9 font-sans text-sm border transition-all duration-300 cursor-pointer ${
                 p === page
                   ? 'bg-black text-white border-black'
-                  : 'border-black/25 text-black/65 hover:border-black/65 hover:text-black'
+                  : 'border-black/50 text-black/90 hover:border-black/65 hover:text-black'
               }`}
             >
               {p}
@@ -259,7 +259,7 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
       <button
         disabled={page === totalPages}
         onClick={() => onPage(page + 1)}
-        className="font-sans text-xs tracking-[0.2em] uppercase border border-black/25 px-4 py-2.5 text-black/70 hover:text-black hover:border-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
+        className="font-sans text-xs tracking-[0.2em] uppercase border border-black/50 px-4 py-2.5 text-black/90 hover:text-black hover:border-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
       >
         Siguiente →
       </button>
@@ -367,8 +367,8 @@ function BuscarClient() {
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="border-b border-black/8 px-4 lg:px-8 py-8 bg-white">
         <div className="max-w-[1400px] mx-auto">
-          <p className="font-sans text-[10px] tracking-[0.35em] text-black/60 uppercase mb-3">
-            <button onClick={() => router.push('/')} className="hover:text-black/60 transition-colors cursor-pointer">Inicio</button>
+          <p className="font-sans text-[10px] tracking-[0.35em] text-black/90 uppercase mb-3">
+            <button onClick={() => router.push('/')} className="hover:text-black/90 transition-colors cursor-pointer">Inicio</button>
             {' / '}
             <span>Búsqueda</span>
           </p>
@@ -380,7 +380,7 @@ function BuscarClient() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Buscar productos, tiendas, categorías..."
-                className="w-full bg-transparent border-b border-black/20 focus:border-black outline-none font-cormorant font-light text-2xl sm:text-3xl text-black placeholder:text-black/20 pb-2 transition-colors duration-300"
+                className="w-full bg-transparent border-b border-black/45 focus:border-black outline-none font-cormorant font-light text-2xl sm:text-3xl text-black placeholder:text-black/20 pb-2 transition-colors duration-300"
                 autoFocus={!!initialQuery}
               />
             </div>
@@ -393,7 +393,7 @@ function BuscarClient() {
             </button>
           </form>
 
-          <p className="font-sans text-sm text-black/65 mt-4">{resultLabel}</p>
+          <p className="font-sans text-sm text-black/90 mt-4">{resultLabel}</p>
         </div>
       </div>
 
@@ -401,12 +401,12 @@ function BuscarClient() {
       <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-10 lg:py-14">
         {/* Mobile filter toggle */}
         <div className="flex items-center justify-between mb-6 lg:hidden">
-          <p className="font-sans text-xs text-black/65 tracking-widest uppercase">
+          <p className="font-sans text-xs text-black/90 tracking-widest uppercase">
             Página {page} de {totalPages || 1}
           </p>
           <button
             onClick={() => setMobileFiltersOpen(true)}
-            className="flex items-center gap-2 font-sans text-xs tracking-[0.2em] uppercase border border-black/20 px-4 py-2 text-black/70 hover:text-black hover:border-black/60 transition-all duration-300 cursor-pointer"
+            className="flex items-center gap-2 font-sans text-xs tracking-[0.2em] uppercase border border-black/45 px-4 py-2 text-black/90 hover:text-black hover:border-black/60 transition-all duration-300 cursor-pointer"
           >
             <svg width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round">
               <line x1="1" y1="2" x2="13" y2="2" />
@@ -430,16 +430,16 @@ function BuscarClient() {
           <main className="flex-1 min-w-0">
             {filtered.length === 0 ? (
               <div className="py-24 text-center">
-                <p className="font-cormorant font-light text-black/50 text-4xl tracking-[0.15em] uppercase mb-4">
+                <p className="font-cormorant font-light text-black/90 text-4xl tracking-[0.15em] uppercase mb-4">
                   Sin resultados
                 </p>
-                <p className="font-sans text-black/60 text-sm">
+                <p className="font-sans text-black/90 text-sm">
                   {hasActiveFilters ? 'Intentá ajustar los filtros' : `No encontramos nada para "${initialQuery}"`}
                 </p>
                 {hasActiveFilters && (
                   <button
                     onClick={clearFilters}
-                    className="mt-6 font-sans text-xs tracking-[0.2em] uppercase border border-black/25 px-5 py-2 text-black/60 hover:text-black hover:border-black/60 transition-all duration-300 cursor-pointer"
+                    className="mt-6 font-sans text-xs tracking-[0.2em] uppercase border border-black/50 px-5 py-2 text-black/90 hover:text-black hover:border-black/60 transition-all duration-300 cursor-pointer"
                   >
                     Limpiar filtros
                   </button>
@@ -473,10 +473,10 @@ function BuscarClient() {
           <div className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] flex flex-col bg-white border-t border-black/10 lg:hidden rounded-t-2xl overflow-hidden">
             {/* Drawer header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-black/8 shrink-0">
-              <p className="font-sans text-[10px] tracking-[0.35em] text-black/65 uppercase">Filtros</p>
+              <p className="font-sans text-[10px] tracking-[0.35em] text-black/90 uppercase">Filtros</p>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
-                className="text-black/60 hover:text-black transition-colors cursor-pointer"
+                className="text-black/90 hover:text-black transition-colors cursor-pointer"
                 aria-label="Cerrar filtros"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
@@ -500,7 +500,7 @@ function BuscarClient() {
                   className={`flex-1 py-3 font-sans text-[9px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all duration-200 border-b-2 cursor-pointer ${
                     activeTab === val
                       ? 'border-black text-black'
-                      : 'border-transparent text-black/55 hover:text-black/80'
+                      : 'border-transparent text-black/90 hover:text-black/95'
                   }`}
                 >
                   {label}
@@ -518,7 +518,7 @@ function BuscarClient() {
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="flex-1 font-sans text-xs tracking-[0.2em] uppercase border border-black/20 py-3 text-black/65 hover:text-black transition-all duration-300 cursor-pointer"
+                  className="flex-1 font-sans text-xs tracking-[0.2em] uppercase border border-black/45 py-3 text-black/90 hover:text-black transition-all duration-300 cursor-pointer"
                 >
                   Limpiar
                 </button>

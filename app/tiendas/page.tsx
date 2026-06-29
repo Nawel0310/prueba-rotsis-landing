@@ -34,8 +34,8 @@ export default function TiendasPage() {
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="border-b border-black/8 px-4 lg:px-8 py-12 lg:py-16">
         <div className="max-w-[1000px] mx-auto">
-          <p className="font-sans text-[10px] tracking-[0.35em] text-black/60 uppercase mb-6">
-            <button onClick={() => router.push('/')} className="hover:text-black/60 transition-colors cursor-pointer">Inicio</button>
+          <p className="font-sans text-[10px] tracking-[0.35em] text-black/90 uppercase mb-6">
+            <button onClick={() => router.push('/')} className="hover:text-black/90 transition-colors cursor-pointer">Inicio</button>
             {' / '}
             <span>Tiendas</span>
           </p>
@@ -44,7 +44,7 @@ export default function TiendasPage() {
               <h1 className="font-cormorant font-light text-black text-4xl sm:text-5xl lg:text-6xl tracking-[0.1em] uppercase leading-none">
                 Todas las Tiendas
               </h1>
-              <p className="font-sans text-black/65 text-sm mt-3 tracking-[0.02em]">
+              <p className="font-sans text-black/90 text-sm mt-3 tracking-[0.02em]">
                 {filtered.length} tienda{filtered.length !== 1 ? 's' : ''} disponible{filtered.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -55,7 +55,7 @@ export default function TiendasPage() {
       {/* ── Rubro filter ────────────────────────────────────────────── */}
       <div className="border-b border-black/8 px-4 lg:px-8 py-5">
         <div className="max-w-[1000px] mx-auto flex items-center gap-2 flex-wrap">
-          <span className="font-sans text-[9px] tracking-[0.3em] text-black/60 uppercase mr-2 shrink-0">Rubro</span>
+          <span className="font-sans text-[9px] tracking-[0.3em] text-black/90 uppercase mr-2 shrink-0">Rubro</span>
           {RUBROS.map((rubro) => (
             <button
               key={rubro}
@@ -63,7 +63,7 @@ export default function TiendasPage() {
               className={`font-sans text-[10px] tracking-[0.2em] uppercase px-3.5 py-2 border transition-all duration-300 cursor-pointer ${
                 rubroFilter === rubro
                   ? 'bg-black text-white border-black'
-                  : 'border-black/25 text-black/65 hover:border-black/55 hover:text-black'
+                  : 'border-black/50 text-black/90 hover:border-black/55 hover:text-black'
               }`}
             >
               {rubro}
@@ -76,19 +76,19 @@ export default function TiendasPage() {
       <div className="max-w-[1000px] mx-auto px-4 lg:px-8 py-10 lg:py-14">
         {paginated.length === 0 ? (
           <div className="py-24 text-center">
-            <p className="font-cormorant font-light text-black/50 text-4xl tracking-[0.15em] uppercase mb-3">Sin tiendas</p>
-            <p className="font-sans text-black/60 text-sm">No hay tiendas en este rubro</p>
+            <p className="font-cormorant font-light text-black/90 text-4xl tracking-[0.15em] uppercase mb-3">Sin tiendas</p>
+            <p className="font-sans text-black/90 text-sm">No hay tiendas en este rubro</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4 lg:gap-5">
             {paginated.map((store, i) => (
               <div
                 key={store.id}
-                className="group flex items-center gap-5 sm:gap-7 p-5 sm:p-6 border border-black/10 bg-white hover:border-black/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)] transition-all duration-400 ease-out"
+                className="group flex items-center gap-5 sm:gap-7 p-5 sm:p-6 border border-black/10 bg-white hover:border-black/45 hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)] transition-all duration-400 ease-out"
               >
                 {/* Index + Logo */}
                 <div className="flex items-center gap-4 shrink-0">
-                  <span className="font-sans text-[11px] text-black/45 tabular-nums w-5 text-right">
+                  <span className="font-sans text-[11px] text-black/85 tabular-nums w-5 text-right">
                     {String((page - 1) * STORES_PER_PAGE + i + 1).padStart(2, '0')}
                   </span>
                   <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white border border-black/10 rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
@@ -108,7 +108,7 @@ export default function TiendasPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
-                      <span className="font-sans text-[9px] tracking-[0.3em] uppercase text-black/55 block mb-0.5">
+                      <span className="font-sans text-[9px] tracking-[0.3em] uppercase text-black/90 block mb-0.5">
                         {store.category}
                       </span>
                       <h2 className="font-cormorant font-light text-black text-xl sm:text-2xl tracking-[0.12em] uppercase leading-none truncate">
@@ -117,12 +117,12 @@ export default function TiendasPage() {
                     </div>
                   </div>
                   {store.description && (
-                    <p className="font-sans text-black/65 text-sm mt-2 leading-relaxed line-clamp-2 max-w-md">
+                    <p className="font-sans text-black/90 text-sm mt-2 leading-relaxed line-clamp-2 max-w-md">
                       {store.description}
                     </p>
                   )}
                   <div className="mt-3 flex items-center gap-4">
-                    <span className="font-sans text-[10px] tracking-[0.15em] text-black/50">
+                    <span className="font-sans text-[10px] tracking-[0.15em] text-black/90">
                       {store.products.length} producto{store.products.length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -149,7 +149,7 @@ export default function TiendasPage() {
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
-              className="font-sans text-xs tracking-[0.2em] uppercase border border-black/25 px-5 py-2.5 text-black/70 hover:text-black hover:border-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
+              className="font-sans text-xs tracking-[0.2em] uppercase border border-black/50 px-5 py-2.5 text-black/90 hover:text-black hover:border-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
             >
               ← Anterior
             </button>
@@ -161,7 +161,7 @@ export default function TiendasPage() {
                 className={`w-9 h-9 font-sans text-sm border transition-all duration-300 cursor-pointer ${
                   p === page
                     ? 'bg-black text-white border-black'
-                    : 'border-black/25 text-black/65 hover:border-black/65 hover:text-black'
+                    : 'border-black/50 text-black/90 hover:border-black/65 hover:text-black'
                 }`}
               >
                 {p}
@@ -171,7 +171,7 @@ export default function TiendasPage() {
             <button
               disabled={page === totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="font-sans text-xs tracking-[0.2em] uppercase border border-black/25 px-5 py-2.5 text-black/70 hover:text-black hover:border-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
+              className="font-sans text-xs tracking-[0.2em] uppercase border border-black/50 px-5 py-2.5 text-black/90 hover:text-black hover:border-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
             >
               Siguiente →
             </button>
