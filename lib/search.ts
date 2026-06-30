@@ -1,5 +1,6 @@
 import { stores } from '@/data/stores'
 import { categories } from '@/data/categories'
+import { parsePrice } from '@/lib/utils'
 
 export type SearchProduct = {
   id: string
@@ -12,11 +13,6 @@ export type SearchProduct = {
   storeId?: string
   productSlug?: string
   description?: string
-}
-
-export function parsePrice(str: string): number {
-  // Argentine format: $1.229,00 → "1229,00" → 1229.00
-  return parseFloat(str.replace(/[^\d,]/g, '').replace(',', '.')) || 0
 }
 
 let _cache: SearchProduct[] | null = null

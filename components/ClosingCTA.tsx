@@ -2,6 +2,8 @@
 
 import { useRef, useCallback } from 'react'
 import { gsap, useGSAP } from '@/lib/gsap'
+import { createSectionAnimation } from '@/lib/gsapAnimation'
+import { Button } from '@/components/ui/Button'
 
 export default function ClosingCTA() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -12,77 +14,70 @@ export default function ClosingCTA() {
     () => {
       const section = sectionRef.current
       if (!section) return
-      const q = (sel: string) => section.querySelectorAll<HTMLElement>(sel)
-      const mm = gsap.matchMedia()
+      createSectionAnimation(section, {
+        full: (q, s) => {
+          gsap.set(q('.closing-fade-in'), { y: 20, autoAlpha: 0 })
+          gsap.set(q('.closing-watermark'), { autoAlpha: 0, x: 40 })
+          gsap.set(q('.closing-glow'), { autoAlpha: 0, scale: 0.9 })
+          gsap.set(q('.closing-ring'), { autoAlpha: 0, scale: 0.85 })
 
-      mm.add('(prefers-reduced-motion: no-preference)', () => {
-        gsap.set(q('.closing-fade-in'), { y: 20, autoAlpha: 0 })
-        gsap.set(q('.closing-watermark'), { autoAlpha: 0, x: 40 })
-        gsap.set(q('.closing-glow'), { autoAlpha: 0, scale: 0.9 })
-        gsap.set(q('.closing-ring'), { autoAlpha: 0, scale: 0.85 })
+          const tl = gsap.timeline({
+            scrollTrigger: { trigger: s, start: 'top 70%', toggleActions: 'play none none none' },
+          })
+          tl.to(q('.closing-glow'), { autoAlpha: 1, scale: 1, duration: 1.8, ease: 'power2.out' })
+            .to(q('.closing-ring'), { autoAlpha: 1, scale: 1, duration: 1.6, ease: 'power3.out' }, '<0.1')
+            .to(q('.closing-watermark'), { autoAlpha: 1, x: 0, duration: 1.4, ease: 'power3.out' }, '<')
+            .to(q('.closing-fade-in'), { y: 0, autoAlpha: 1, stagger: 0.1, duration: 1.0, ease: 'power3.out' }, '<0.2')
 
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: section, start: 'top 70%', toggleActions: 'play none none none' },
-        })
-        tl.to(q('.closing-glow'), { autoAlpha: 1, scale: 1, duration: 1.8, ease: 'power2.out' })
-          .to(q('.closing-ring'), { autoAlpha: 1, scale: 1, duration: 1.6, ease: 'power3.out' }, '<0.1')
-          .to(q('.closing-watermark'), { autoAlpha: 1, x: 0, duration: 1.4, ease: 'power3.out' }, '<')
-          .to(
-            q('.closing-fade-in'),
-            { y: 0, autoAlpha: 1, stagger: 0.1, duration: 1.0, ease: 'power3.out' },
-            '<0.2'
-          )
+          const breathe = gsap.to(q('.closing-glow'), {
+            scale: 1.1,
+            duration: 5,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+          })
+          const rotate = gsap.to(q('.closing-ring'), {
+            rotation: 360,
+            duration: 50,
+            ease: 'none',
+            repeat: -1,
+          })
 
-        const breathe = gsap.to(q('.closing-glow'), {
-          scale: 1.1,
-          duration: 5,
-          ease: 'sine.inOut',
-          repeat: -1,
-          yoyo: true,
-        })
-        const rotate = gsap.to(q('.closing-ring'), {
-          rotation: 360,
-          duration: 50,
-          ease: 'none',
-          repeat: -1,
-        })
+          return () => {
+            tl.kill()
+            breathe.kill()
+            rotate.kill()
+          }
+        },
+        reduced: (q) => {
+          gsap.set(q('.closing-fade-in, .closing-watermark, .closing-glow'), { autoAlpha: 1 })
+        },
+        pointer: (q) => {
+          ctaQuickRef.current = {
+            x: gsap.quickTo(ctaRef.current, 'x', { duration: 0.4, ease: 'power3.out' }),
+            y: gsap.quickTo(ctaRef.current, 'y', { duration: 0.4, ease: 'power3.out' }),
+          }
 
-        return () => {
-          tl.kill()
-          breathe.kill()
-          rotate.kill()
-        }
-      })
+          const glowX = gsap.quickTo(q('.closing-glow'), 'x', { duration: 1.6, ease: 'power3.out' })
+          const glowY = gsap.quickTo(q('.closing-glow'), 'y', { duration: 1.6, ease: 'power3.out' })
 
-      mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set(q('.closing-fade-in, .closing-watermark, .closing-glow'), { autoAlpha: 1 })
-      })
+          const onMove = (e: MouseEvent) => {
+            const rect = sectionRef.current!.getBoundingClientRect()
+            const nx = (e.clientX - rect.left) / rect.width - 0.5
+            const ny = (e.clientY - rect.top) / rect.height - 0.5
+            glowX(nx * 40)
+            glowY(ny * 32)
+          }
+          sectionRef.current!.addEventListener('mousemove', onMove)
 
-      mm.add('(pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
-        ctaQuickRef.current = {
-          x: gsap.quickTo(ctaRef.current, 'x', { duration: 0.4, ease: 'power3.out' }),
-          y: gsap.quickTo(ctaRef.current, 'y', { duration: 0.4, ease: 'power3.out' }),
-        }
-
-        const glowX = gsap.quickTo(q('.closing-glow'), 'x', { duration: 1.6, ease: 'power3.out' })
-        const glowY = gsap.quickTo(q('.closing-glow'), 'y', { duration: 1.6, ease: 'power3.out' })
-
-        const onMove = (e: MouseEvent) => {
-          const rect = section.getBoundingClientRect()
-          const nx = (e.clientX - rect.left) / rect.width - 0.5
-          const ny = (e.clientY - rect.top) / rect.height - 0.5
-          glowX(nx * 40)
-          glowY(ny * 32)
-        }
-        section.addEventListener('mousemove', onMove)
-
-        return () => {
-          section.removeEventListener('mousemove', onMove)
-          ctaQuickRef.current = null
-        }
+          return () => {
+            sectionRef.current?.removeEventListener('mousemove', onMove)
+            ctaQuickRef.current = null
+          }
+        },
       })
     },
-    { scope: sectionRef }
+    { scope: sectionRef },
   )
 
   const onCtaMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -124,17 +119,15 @@ export default function ClosingCTA() {
           a cada detalle de su experiencia.
         </p>
 
-        <button
+        <Button
           ref={ctaRef}
+          theme="dark"
           onMouseMove={onCtaMove}
           onMouseLeave={onCtaLeave}
-          className="closing-fade-in group relative overflow-hidden font-bebas text-lg lg:text-xl xl:text-2xl tracking-[0.5em] px-16 lg:px-24 py-4 lg:py-5 border border-white/80 text-white cursor-pointer mt-4"
+          className="closing-fade-in font-bebas text-lg lg:text-xl xl:text-2xl tracking-[0.5em] px-16 lg:px-24 py-4 lg:py-5 border border-white/80 text-white mt-4"
         >
-          <span className="absolute inset-0 bg-white origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-          <span className="relative z-10 group-hover:text-black transition-colors duration-500">
-            SOLICITAR ACCESO
-          </span>
-        </button>
+          SOLICITAR ACCESO
+        </Button>
       </div>
     </section>
   )

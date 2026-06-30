@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useLenis } from 'lenis/react'
 import { useCart } from './CartProvider'
+import { Button } from '@/components/ui/Button'
 
 const LINKS = [
   { id: 'categorias', label: 'Categorías' },
@@ -21,12 +22,12 @@ export default function Navbar() {
   const inputRef = useRef<HTMLInputElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  const doSearch = () => {
+  const doSearch = useCallback(() => {
     if (!query.trim()) return
     router.push(`/buscar?q=${encodeURIComponent(query.trim())}`)
     setSearchOpen(false)
     setQuery('')
-  }
+  }, [query, router])
 
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus()
@@ -48,46 +49,43 @@ export default function Navbar() {
     }
   }, [searchOpen])
 
-  const goTo = (id: string) => (e: React.MouseEvent) => {
-    e.preventDefault()
-    if (id === 'categorias') {
-      router.push('/buscar')
-      return
-    }
-    if (id === 'tiendas') {
-      router.push('/tiendas')
-      return
-    }
-    if (id === 'nosotros') {
-      if (pathname === '/') {
-        const el = document.getElementById('nosotros')
-        if (el) {
-          if (lenis) lenis.scrollTo(el, { offset: -96, duration: 1.3 })
-          else el.scrollIntoView({ behavior: 'smooth' })
+  const goTo = useCallback(
+    (id: string) => (e: React.MouseEvent) => {
+      e.preventDefault()
+      if (id === 'categorias') { router.push('/buscar'); return }
+      if (id === 'tiendas') { router.push('/tiendas'); return }
+      if (id === 'nosotros') {
+        if (pathname === '/') {
+          const el = document.getElementById('nosotros')
+          if (el) {
+            if (lenis) lenis.scrollTo(el, { offset: -96, duration: 1.3 })
+            else el.scrollIntoView({ behavior: 'smooth' })
+          }
+        } else {
+          router.push('/#nosotros')
         }
-      } else {
-        router.push('/#nosotros')
+        return
       }
-      return
-    }
-    const el = document.getElementById(id)
-    if (!el) return
-    if (lenis) {
-      lenis.scrollTo(el, { offset: -96, duration: 1.3 })
-    } else {
-      el.scrollIntoView({ behavior: 'smooth' })
-    }
-  }
+      const el = document.getElementById(id)
+      if (!el) return
+      if (lenis) lenis.scrollTo(el, { offset: -96, duration: 1.3 })
+      else el.scrollIntoView({ behavior: 'smooth' })
+    },
+    [lenis, pathname, router],
+  )
 
-  const goHome = (e: React.MouseEvent) => {
-    e.preventDefault()
-    if (pathname === '/') {
-      if (lenis) lenis.scrollTo(0, { duration: 1.2 })
-      else window.scrollTo({ top: 0, behavior: 'smooth' })
-    } else {
-      router.push('/')
-    }
-  }
+  const goHome = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      if (pathname === '/') {
+        if (lenis) lenis.scrollTo(0, { duration: 1.2 })
+        else window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        router.push('/')
+      }
+    },
+    [lenis, pathname, router],
+  )
 
   return (
     <header className="sticky top-0 inset-x-0 z-50 bg-black border-b border-white/10">
@@ -161,12 +159,12 @@ export default function Navbar() {
             )}
           </button>
 
-          <button className="hidden lg:inline-flex group relative overflow-hidden font-bebas text-[11px] tracking-[0.3em] px-6 py-2.5 border border-white/70 text-white cursor-pointer shrink-0 ml-5">
-            <span className="absolute inset-0 bg-white origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-            <span className="relative z-10 group-hover:text-black transition-colors duration-500">
-              ACCEDER AL SISTEMA
-            </span>
-          </button>
+          <Button
+            theme="dark"
+            className="hidden lg:inline-flex font-bebas text-[11px] tracking-[0.3em] px-6 py-2.5 border border-white/70 text-white shrink-0 ml-5"
+          >
+            ACCEDER AL SISTEMA
+          </Button>
         </div>
       </div>
     </header>

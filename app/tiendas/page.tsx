@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { stores } from '@/data/stores'
+import { RUBROS } from '@/data/constants'
+import { Button } from '@/components/ui/Button'
 
 const STORES_PER_PAGE = 5
-const RUBROS = ['Todos', 'Moda', 'Deportes', 'Tecnología', 'Belleza', 'Lifestyle']
 
 export default function TiendasPage() {
   const router = useRouter()
@@ -24,10 +25,10 @@ export default function TiendasPage() {
     return filtered.slice(start, start + STORES_PER_PAGE)
   }, [filtered, page])
 
-  const handleRubro = (rubro: string) => {
+  const handleRubro = useCallback((rubro: string) => {
     setRubroFilter(rubro)
     setPage(1)
-  }
+  }, [])
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -129,15 +130,13 @@ export default function TiendasPage() {
                 </div>
 
                 {/* CTA */}
-                <button
+                <Button
+                  theme="light"
                   onClick={() => router.push(`/tienda/${store.id}`)}
-                  className="group/btn relative overflow-hidden font-bebas text-[11px] sm:text-sm tracking-[0.35em] px-6 sm:px-8 py-3 sm:py-3.5 border border-black/50 text-black cursor-pointer shrink-0"
+                  className="font-bebas text-[11px] sm:text-sm tracking-[0.35em] px-6 sm:px-8 py-3 sm:py-3.5 border border-black/50 text-black shrink-0"
                 >
-                  <span className="absolute inset-0 bg-black origin-bottom scale-y-0 group-hover/btn:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-                  <span className="relative z-10 group-hover/btn:text-white transition-colors duration-500">
-                    ACCEDER
-                  </span>
-                </button>
+                  ACCEDER
+                </Button>
               </div>
             ))}
           </div>

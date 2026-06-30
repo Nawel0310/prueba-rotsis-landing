@@ -1,28 +1,16 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useMemo } from 'react'
 import { flushSync } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { gsap, useGSAP } from '@/lib/gsap'
-import { categories } from '@/data/categories'
-import ProductCard from './ProductCard'
-import { parsePrice } from '@/lib/search'
+import { createSectionAnimation } from '@/lib/gsapAnimation'
+import { categories, type CategoryProduct } from '@/data/categories'
+import { BRAND_STORE_ID } from '@/data/constants'
+import { parsePrice } from '@/lib/utils'
+import { useProductFilter, type FilterPredicate, type SortComparator } from '@/hooks/useProductFilter'
 import { slugify } from '@/data/stores'
-
-const BRAND_STORE_ID: Record<string, string> = {
-  'ATELIER FORGE': 'atelier-forge',
-  'CAVE NOIRE': 'cave-noire',
-  'MAISON BRÜHL': 'maison-bruhl',
-  'NORDLINE AUDIO': 'nordline-audio',
-  'OPTIK WERK': 'optik-werk',
-  'VESPER DIGITAL': 'vesper-digital',
-  'STUDIO LUMEN': 'studio-lumen',
-  'MARBLE & OAK': 'marble-oak',
-  'AQUA LUME': 'aqua-lume',
-  'PIETRA BAGNO': 'pietra-bagno',
-  'MAISON VESTE': 'maison-veste',
-  'ATELIER NOIR': 'atelier-noir',
-}
+import ProductCard from './ProductCard'
 
 export default function CategoryShowcase() {
   const router = useRouter()
@@ -38,18 +26,25 @@ export default function CategoryShowcase() {
 
   const category = categories[activeIndex]
 
-  const filteredProducts = category.products
-    .filter((p) => {
-      const n = parsePrice(p.price)
-      if (minPrice && n < parseFloat(minPrice)) return false
-      if (maxPrice && n > parseFloat(maxPrice)) return false
-      return true
-    })
-    .sort((a, b) => {
-      if (sort === 'asc') return parsePrice(a.price) - parsePrice(b.price)
-      if (sort === 'desc') return parsePrice(b.price) - parsePrice(a.price)
-      return 0
-    })
+  // Strategy Pattern: each predicate is a composable filter strategy
+  const predicates = useMemo<FilterPredicate<CategoryProduct>[]>(() => {
+    const ps: FilterPredicate<CategoryProduct>[] = []
+    if (minPrice) ps.push((p) => parsePrice(p.price) >= parseFloat(minPrice))
+    if (maxPrice) ps.push((p) => parsePrice(p.price) <= parseFloat(maxPrice))
+    return ps
+  }, [minPrice, maxPrice])
+
+  const comparator = useMemo<SortComparator<CategoryProduct> | undefined>(() => {
+    if (sort === 'asc') return (a, b) => parsePrice(a.price) - parsePrice(b.price)
+    if (sort === 'desc') return (a, b) => parsePrice(b.price) - parsePrice(a.price)
+    return undefined
+  }, [sort])
+
+  const { filtered: filteredProducts } = useProductFilter({
+    items: category.products,
+    predicates,
+    comparator,
+  })
 
   const switchCategory = useCallback((newIndex: number) => {
     if (newIndex === activeIndexRef.current) return
@@ -74,11 +69,7 @@ export default function CategoryShowcase() {
     if (reducedMotionRef.current) {
       tl.to(q('.category-product-card'), { opacity: 0, duration: 0.2 }).call(() => {
         flushSync(() => setActiveIndex(newIndex))
-        tl.fromTo(
-          q('.category-product-card'),
-          { opacity: 0 },
-          { opacity: 1, duration: 0.35 }
-        )
+        tl.fromTo(q('.category-product-card'), { opacity: 0 }, { opacity: 1, duration: 0.35 })
       })
       return
     }
@@ -92,26 +83,16 @@ export default function CategoryShowcase() {
       }, '<')
       .call(() => {
         flushSync(() => setActiveIndex(newIndex))
-
         tl.fromTo(
           q('.category-product-card'),
           { clipPath: 'inset(100% 0% 0% 0%)' },
-          {
-            clipPath: 'inset(0% 0% 0% 0%)',
-            stagger: { each: 0.07 },
-            duration: 1.0,
-            ease: 'power4.out',
-          }
+          { clipPath: 'inset(0% 0% 0% 0%)', stagger: { each: 0.07 }, duration: 1.0, ease: 'power4.out' },
         ).fromTo(
           q('.category-product-card .product-card-img'),
           { scale: 1.18 },
           { scale: 1, stagger: { each: 0.07 }, duration: 1.4, ease: 'power3.out' },
-          '<'
-        ).to(
-          q('.category-watermark'),
-          { autoAlpha: 1, duration: 0.9, ease: 'power3.out' },
-          '<0.1'
-        )
+          '<',
+        ).to(q('.category-watermark'), { autoAlpha: 1, duration: 0.9, ease: 'power3.out' }, '<0.1')
       })
   }, [])
 
@@ -119,81 +100,60 @@ export default function CategoryShowcase() {
     () => {
       const section = sectionRef.current
       if (!section) return
-      const q = (sel: string) => section.querySelectorAll<HTMLElement>(sel)
-      const mm = gsap.matchMedia()
+      createSectionAnimation(section, {
+        onReducedMotionChange: (v) => { reducedMotionRef.current = v },
+        full: (q) => {
+          gsap.set(q('.category-fade-in'), { y: 24, autoAlpha: 0 })
+          gsap.set(q('.category-divider'), { scaleX: 0 })
+          gsap.set(q('.category-chip'), { y: 16, autoAlpha: 0 })
+          gsap.set(q('.category-product-card'), { clipPath: 'inset(100% 0% 0% 0%)' })
+          gsap.set(q('.category-product-card .product-card-img'), { scale: 1.18 })
+          gsap.set(q('.category-watermark'), { autoAlpha: 0, scale: 1.06 })
+          gsap.set(q('.category-glow'), { autoAlpha: 0 })
 
-      mm.add('(prefers-reduced-motion: reduce)', () => {
-        reducedMotionRef.current = true
-      })
+          const tl = gsap.timeline({
+            scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none none' },
+          })
+          tl.to(q('.category-glow'), { autoAlpha: 1, duration: 1.6, ease: 'power2.out' })
+            .to(q('.category-watermark'), { autoAlpha: 1, scale: 1, duration: 1.4, ease: 'power3.out' }, '<')
+            .to(q('.category-fade-in'), { y: 0, autoAlpha: 1, duration: 1.0, ease: 'power4.out' }, '<0.2')
+            .to(q('.category-divider'), { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, '<0.2')
+            .to(q('.category-chip'), { y: 0, autoAlpha: 1, stagger: 0.06, duration: 0.7, ease: 'power3.out' }, '<0.1')
+            .to(q('.category-product-card'), { clipPath: 'inset(0% 0% 0% 0%)', stagger: { each: 0.07 }, duration: 1.0, ease: 'power4.out' }, '<0.15')
+            .to(q('.category-product-card .product-card-img'), { scale: 1, stagger: { each: 0.07 }, duration: 1.4, ease: 'power3.out' }, '<')
 
-      mm.add('(prefers-reduced-motion: no-preference)', () => {
-        reducedMotionRef.current = false
+          const breathe = gsap.to(q('.category-glow'), {
+            scale: 1.08,
+            duration: 6,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+          })
 
-        gsap.set(q('.category-fade-in'), { y: 24, autoAlpha: 0 })
-        gsap.set(q('.category-divider'), { scaleX: 0 })
-        gsap.set(q('.category-chip'), { y: 16, autoAlpha: 0 })
-        gsap.set(q('.category-product-card'), { clipPath: 'inset(100% 0% 0% 0%)' })
-        gsap.set(q('.category-product-card .product-card-img'), { scale: 1.18 })
-        gsap.set(q('.category-watermark'), { autoAlpha: 0, scale: 1.06 })
-        gsap.set(q('.category-glow'), { autoAlpha: 0 })
+          return () => {
+            tl.kill()
+            breathe.kill()
+          }
+        },
+        reduced: () => {},
+        pointer: (q) => {
+          const glowX = gsap.quickTo(q('.category-glow'), 'x', { duration: 1.4, ease: 'power3.out' })
+          const glowY = gsap.quickTo(q('.category-glow'), 'y', { duration: 1.4, ease: 'power3.out' })
 
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none none' },
-        })
-        tl.to(q('.category-glow'), { autoAlpha: 1, duration: 1.6, ease: 'power2.out' })
-          .to(q('.category-watermark'), { autoAlpha: 1, scale: 1, duration: 1.4, ease: 'power3.out' }, '<')
-          .to(q('.category-fade-in'), {
-            y: 0,
-            autoAlpha: 1,
-            duration: 1.0,
-            ease: 'power4.out',
-          }, '<0.2')
-          .to(q('.category-divider'), { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, '<0.2')
-          .to(q('.category-chip'), { y: 0, autoAlpha: 1, stagger: 0.06, duration: 0.7, ease: 'power3.out' }, '<0.1')
-          .to(
-            q('.category-product-card'),
-            { clipPath: 'inset(0% 0% 0% 0%)', stagger: { each: 0.07 }, duration: 1.0, ease: 'power4.out' },
-            '<0.15'
-          )
-          .to(
-            q('.category-product-card .product-card-img'),
-            { scale: 1, stagger: { each: 0.07 }, duration: 1.4, ease: 'power3.out' },
-            '<'
-          )
+          const onMove = (e: MouseEvent) => {
+            const rect = section.getBoundingClientRect()
+            const nx = (e.clientX - rect.left) / rect.width - 0.5
+            const ny = (e.clientY - rect.top) / rect.height - 0.5
+            glowX(nx * 36)
+            glowY(ny * 28)
+          }
+          section.addEventListener('mousemove', onMove)
 
-        const breathe = gsap.to(q('.category-glow'), {
-          scale: 1.08,
-          duration: 6,
-          ease: 'sine.inOut',
-          repeat: -1,
-          yoyo: true,
-        })
-
-        return () => {
-          tl.kill()
-          breathe.kill()
-        }
-      })
-
-      mm.add('(pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
-        const glowX = gsap.quickTo(q('.category-glow'), 'x', { duration: 1.4, ease: 'power3.out' })
-        const glowY = gsap.quickTo(q('.category-glow'), 'y', { duration: 1.4, ease: 'power3.out' })
-
-        const onMove = (e: MouseEvent) => {
-          const rect = section.getBoundingClientRect()
-          const nx = (e.clientX - rect.left) / rect.width - 0.5
-          const ny = (e.clientY - rect.top) / rect.height - 0.5
-          glowX(nx * 36)
-          glowY(ny * 28)
-        }
-        section.addEventListener('mousemove', onMove)
-
-        return () => {
-          section.removeEventListener('mousemove', onMove)
-        }
+          return () => { section.removeEventListener('mousemove', onMove) }
+        },
       })
     },
-    { scope: sectionRef }
+    { scope: sectionRef },
   )
 
   return (
@@ -236,9 +196,7 @@ export default function CategoryShowcase() {
             >
               {c.label}
               <span
-                ref={(el) => {
-                  underlineRefs.current[i] = el
-                }}
+                ref={(el) => { underlineRefs.current[i] = el }}
                 className="absolute bottom-0 left-0 h-px w-full bg-white origin-left"
                 style={{ transform: `scaleX(${i === activeIndex ? 1 : 0})` }}
               />

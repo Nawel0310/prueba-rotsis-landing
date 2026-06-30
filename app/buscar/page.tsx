@@ -1,17 +1,17 @@
 'use client'
 
-import { Suspense, useState, useMemo, useEffect } from 'react'
+import { Suspense, useState, useMemo, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
   getAllProducts,
   searchProducts,
-  parsePrice,
   getUniqueCategories,
   getUniqueStores,
   type SearchProduct,
 } from '@/lib/search'
 import { useProductModal } from '@/components/ProductModalProvider'
+import { Button } from '@/components/ui/Button'
 
 const PAGE_SIZE = 12
 
@@ -318,38 +318,48 @@ function BuscarClient() {
   const hasActiveFilters =
     sort !== 'relevance' || !!minPrice || !!maxPrice || selectedCats.length > 0 || selectedStores.length > 0
 
-  const toggleCat = (c: string) =>
-    setSelectedCats((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]))
+  const toggleCat = useCallback(
+    (c: string) => setSelectedCats((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]),
+    [],
+  )
 
-  const toggleStore = (s: string) =>
-    setSelectedStores((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]))
+  const toggleStore = useCallback(
+    (s: string) => setSelectedStores((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]),
+    [],
+  )
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSort('relevance')
     setMinPrice('')
     setMaxPrice('')
     setSelectedCats([])
     setSelectedStores([])
-  }
+  }, [])
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    router.push(inputValue.trim() ? `/buscar?q=${encodeURIComponent(inputValue.trim())}` : '/buscar')
-  }
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      router.push(inputValue.trim() ? `/buscar?q=${encodeURIComponent(inputValue.trim())}` : '/buscar')
+    },
+    [inputValue, router],
+  )
 
-  const handleNavigate = (product: SearchProduct) => {
-    if (product.storeId && product.productSlug) {
-      router.push(`/tienda/${product.storeId}/producto/${product.productSlug}`)
-    } else {
-      open({
-        name: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        description: product.description,
-        storeName: product.storeName,
-      })
-    }
-  }
+  const handleNavigate = useCallback(
+    (product: SearchProduct) => {
+      if (product.storeId && product.productSlug) {
+        router.push(`/tienda/${product.storeId}/producto/${product.productSlug}`)
+      } else {
+        open({
+          name: product.name,
+          price: product.price,
+          imageUrl: product.imageUrl,
+          description: product.description,
+          storeName: product.storeName,
+        })
+      }
+    },
+    [router, open],
+  )
 
   const filterProps = {
     sort, setSort, minPrice, setMinPrice, maxPrice, setMaxPrice,
@@ -384,13 +394,13 @@ function BuscarClient() {
                 autoFocus={!!initialQuery}
               />
             </div>
-            <button
+            <Button
               type="submit"
-              className="group relative overflow-hidden font-bebas text-sm tracking-[0.3em] px-6 py-2.5 border border-black/50 text-black cursor-pointer shrink-0 mb-0.5"
+              theme="light"
+              className="font-bebas text-sm tracking-[0.3em] px-6 py-2.5 border border-black/50 text-black shrink-0 mb-0.5"
             >
-              <span className="absolute inset-0 bg-black origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-              <span className="relative z-10 group-hover:text-white transition-colors duration-500">BUSCAR</span>
-            </button>
+              BUSCAR
+            </Button>
           </form>
 
           <p className="font-sans text-sm text-black/90 mt-4">{resultLabel}</p>
@@ -523,13 +533,13 @@ function BuscarClient() {
                   Limpiar
                 </button>
               )}
-              <button
+              <Button
+                theme="light"
                 onClick={() => setMobileFiltersOpen(false)}
-                className="flex-1 group relative overflow-hidden font-bebas text-sm tracking-[0.3em] py-3 border border-black/60 text-black cursor-pointer"
+                className="flex-1 font-bebas text-sm tracking-[0.3em] py-3 border border-black/60 text-black"
               >
-                <span className="absolute inset-0 bg-black origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-                <span className="relative z-10 group-hover:text-white transition-colors duration-500">VER RESULTADOS</span>
-              </button>
+                VER RESULTADOS
+              </Button>
             </div>
           </div>
         </>

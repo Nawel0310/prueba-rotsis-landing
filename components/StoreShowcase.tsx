@@ -1,13 +1,14 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap'
+import { createSectionAnimation } from '@/lib/gsapAnimation'
 import { getFeaturedStores } from '@/data/stores'
+import { RUBROS } from '@/data/constants'
+import { Button } from '@/components/ui/Button'
 import ProductCard from './ProductCard'
-
-const RUBROS = ['Todos', 'Moda', 'Deportes', 'Tecnología', 'Belleza', 'Lifestyle']
 
 const STORE_BACKGROUNDS: Record<string, string> = {
   zara: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&h=900&fit=crop&q=80',
@@ -23,49 +24,41 @@ export default function StoreShowcase() {
   const blockRefs = useRef<(HTMLDivElement | null)[]>([])
   const [rubroFilter, setRubroFilter] = useState('Todos')
   const allStores = getFeaturedStores()
-  const stores = rubroFilter === 'Todos' ? allStores : allStores.filter((s) => s.category === rubroFilter)
+
+  const stores = useMemo(
+    () => rubroFilter === 'Todos' ? allStores : allStores.filter((s) => s.category === rubroFilter),
+    [rubroFilter, allStores],
+  )
 
   useGSAP(
     () => {
-      const mm = gsap.matchMedia()
-
-      mm.add('(prefers-reduced-motion: no-preference)', () => {
-        const triggers: ScrollTrigger[] = []
-
-        blockRefs.current.forEach((block) => {
-          if (!block) return
-          const q = (sel: string) => block.querySelectorAll<HTMLElement>(sel)
-          gsap.set(q('.store-block-fade'), { y: 20, autoAlpha: 0 })
-          gsap.set(q('.store-block-card'), { clipPath: 'inset(100% 0% 0% 0%)' })
-          gsap.set(q('.store-block-card .product-card-img'), { scale: 1.18 })
-
-          const tl = gsap.timeline({
-            scrollTrigger: { trigger: block, start: 'top 82%', toggleActions: 'play none none none' },
+      const section = sectionRef.current
+      if (!section) return
+      createSectionAnimation(section, {
+        full: () => {
+          const triggers: ScrollTrigger[] = []
+          blockRefs.current.forEach((block) => {
+            if (!block) return
+            const bq = (sel: string) => block.querySelectorAll<HTMLElement>(sel)
+            gsap.set(bq('.store-block-fade'), { y: 20, autoAlpha: 0 })
+            gsap.set(bq('.store-block-card'), { clipPath: 'inset(100% 0% 0% 0%)' })
+            gsap.set(bq('.store-block-card .product-card-img'), { scale: 1.18 })
+            const tl = gsap.timeline({
+              scrollTrigger: { trigger: block, start: 'top 82%', toggleActions: 'play none none none' },
+            })
+            tl.to(bq('.store-block-fade'), { y: 0, autoAlpha: 1, duration: 0.9, ease: 'power3.out' })
+              .to(bq('.store-block-card'), { clipPath: 'inset(0% 0% 0% 0%)', stagger: 0.07, duration: 1.0, ease: 'power4.out' }, '<0.15')
+              .to(bq('.store-block-card .product-card-img'), { scale: 1, stagger: 0.07, duration: 1.4, ease: 'power3.out' }, '<')
+            if (tl.scrollTrigger) triggers.push(tl.scrollTrigger)
           })
-          tl.to(q('.store-block-fade'), { y: 0, autoAlpha: 1, duration: 0.9, ease: 'power3.out' })
-            .to(
-              q('.store-block-card'),
-              { clipPath: 'inset(0% 0% 0% 0%)', stagger: 0.07, duration: 1.0, ease: 'power4.out' },
-              '<0.15'
-            )
-            .to(
-              q('.store-block-card .product-card-img'),
-              { scale: 1, stagger: 0.07, duration: 1.4, ease: 'power3.out' },
-              '<'
-            )
-          if (tl.scrollTrigger) triggers.push(tl.scrollTrigger)
-        })
-
-        return () => {
-          triggers.forEach((t) => t.kill())
-        }
-      })
-
-      mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set('.store-block-fade, .store-block-card', { autoAlpha: 1, clipPath: 'inset(0% 0% 0% 0%)' })
+          return () => { triggers.forEach((t) => t.kill()) }
+        },
+        reduced: () => {
+          gsap.set('.store-block-fade, .store-block-card', { autoAlpha: 1, clipPath: 'inset(0% 0% 0% 0%)' })
+        },
       })
     },
-    { scope: sectionRef, dependencies: [stores.length] }
+    { scope: sectionRef, dependencies: [rubroFilter] },
   )
 
   return (
@@ -102,9 +95,7 @@ export default function StoreShowcase() {
           {stores.map((store, si) => (
             <div
               key={store.id}
-              ref={(el) => {
-                blockRefs.current[si] = el
-              }}
+              ref={(el) => { blockRefs.current[si] = el }}
               className="relative overflow-hidden rounded-lg border border-black/10 p-6 sm:p-8 lg:p-12"
             >
               <div className="absolute inset-0">
@@ -162,15 +153,13 @@ export default function StoreShowcase() {
                 </div>
 
                 <div className="store-block-fade flex justify-center mt-10 lg:mt-12">
-                  <button
+                  <Button
+                    theme="light"
                     onClick={() => router.push(`/tienda/${store.id}`)}
-                    className="group relative overflow-hidden font-bebas text-base lg:text-lg tracking-[0.4em] px-12 lg:px-16 py-3.5 lg:py-4 border border-black/80 text-black cursor-pointer"
+                    className="font-bebas text-base lg:text-lg tracking-[0.4em] px-12 lg:px-16 py-3.5 lg:py-4 border border-black/80 text-black"
                   >
-                    <span className="absolute inset-0 bg-black origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-                    <span className="relative z-10 group-hover:text-white transition-colors duration-500">
-                      ACCEDER A LA TIENDA
-                    </span>
-                  </button>
+                    ACCEDER A LA TIENDA
+                  </Button>
                 </div>
               </div>
             </div>
@@ -179,15 +168,13 @@ export default function StoreShowcase() {
 
         {/* Mostrar todas las tiendas */}
         <div className="flex justify-center mt-16 lg:mt-20">
-          <button
+          <Button
+            theme="light"
             onClick={() => router.push('/tiendas')}
-            className="group relative overflow-hidden font-bebas text-sm lg:text-base tracking-[0.4em] px-10 lg:px-14 py-3 lg:py-3.5 border border-black/50 text-black cursor-pointer"
+            className="font-bebas text-sm lg:text-base tracking-[0.4em] px-10 lg:px-14 py-3 lg:py-3.5 border border-black/50 text-black"
           >
-            <span className="absolute inset-0 bg-black origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-            <span className="relative z-10 group-hover:text-white transition-colors duration-500">
-              MOSTRAR TODAS LAS TIENDAS
-            </span>
-          </button>
+            MOSTRAR TODAS LAS TIENDAS
+          </Button>
         </div>
       </div>
     </section>

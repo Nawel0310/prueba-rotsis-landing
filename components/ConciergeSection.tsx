@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import Image from 'next/image'
 import { gsap, useGSAP } from '@/lib/gsap'
+import { createSectionAnimation } from '@/lib/gsapAnimation'
 
 const COLUMNS = [
   {
@@ -35,37 +36,34 @@ export default function ConciergeSection() {
     () => {
       const section = sectionRef.current
       if (!section) return
-      const q = (sel: string) => section.querySelectorAll<HTMLElement>(sel)
-      const mm = gsap.matchMedia()
-
-      mm.add('(prefers-reduced-motion: no-preference)', () => {
-        gsap.to(q('.concierge-bg'), {
-          yPercent: 8,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: true,
-          },
-        })
-
-        gsap.set(q('.concierge-col'), { y: 30, autoAlpha: 0 })
-        gsap.to(q('.concierge-col'), {
-          y: 0,
-          autoAlpha: 1,
-          stagger: 0.15,
-          duration: 0.9,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: section, start: 'top 75%', toggleActions: 'play none none none' },
-        })
-      })
-
-      mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set(q('.concierge-col'), { autoAlpha: 1 })
+      createSectionAnimation(section, {
+        full: (q, s) => {
+          gsap.to(q('.concierge-bg'), {
+            yPercent: 8,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: s,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
+            },
+          })
+          gsap.set(q('.concierge-col'), { y: 30, autoAlpha: 0 })
+          gsap.to(q('.concierge-col'), {
+            y: 0,
+            autoAlpha: 1,
+            stagger: 0.15,
+            duration: 0.9,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: s, start: 'top 75%', toggleActions: 'play none none none' },
+          })
+        },
+        reduced: (q) => {
+          gsap.set(q('.concierge-col'), { autoAlpha: 1 })
+        },
       })
     },
-    { scope: sectionRef }
+    { scope: sectionRef },
   )
 
   return (

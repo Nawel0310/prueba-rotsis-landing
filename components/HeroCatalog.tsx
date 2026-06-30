@@ -6,19 +6,40 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Video from '@/components/Video'
 import { gsap, useGSAP } from '@/lib/gsap'
-import { heroStores as stores, getAdjacentHeroStores as getAdjacentStores, cycleDir, type Store } from '@/data/stores'
-const ChevronLeft = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="13 16 7 10 13 4" />
-  </svg>
-)
-const ChevronRight = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="7 4 13 10 7 16" />
-  </svg>
-)
+import { createSectionAnimation } from '@/lib/gsapAnimation'
+import { heroStores as stores, getAdjacentHeroStores as getAdjacentStores, type Store } from '@/data/stores'
+import { ChevronLeft } from '@/components/icons/ChevronLeft'
+import { ChevronRight } from '@/components/icons/ChevronRight'
+import { useCarousel } from '@/hooks/useCarousel'
+import { Button } from '@/components/ui/Button'
 
 const pad = (n: number) => String(n).padStart(2, '0')
+
+// Module-level constants — static objects created once, not per-render
+const PERSP_FAR_LEFT: React.CSSProperties = {
+  transform: 'perspective(400px) rotateY(46deg) scaleY(0.68)',
+  transformOrigin: 'right center',
+  width: '100%',
+  height: '100%',
+}
+const PERSP_NEAR_LEFT: React.CSSProperties = {
+  transform: 'perspective(400px) rotateY(28deg) scaleY(0.83)',
+  transformOrigin: 'right center',
+  width: '100%',
+  height: '100%',
+}
+const PERSP_NEAR_RIGHT: React.CSSProperties = {
+  transform: 'perspective(400px) rotateY(-28deg) scaleY(0.83)',
+  transformOrigin: 'left center',
+  width: '100%',
+  height: '100%',
+}
+const PERSP_FAR_RIGHT: React.CSSProperties = {
+  transform: 'perspective(400px) rotateY(-46deg) scaleY(0.68)',
+  transformOrigin: 'left center',
+  width: '100%',
+  height: '100%',
+}
 
 // ─── Side logo panel ─────────────────────────────────────────────────────────
 function SideLogoPanel({
@@ -63,18 +84,10 @@ export default function HeroCatalog() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const centerRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLButtonElement>(null)
-  const currentIndexRef = useRef(0)
   const activeTlRef = useRef<gsap.core.Timeline | null>(null)
   const reducedMotionRef = useRef(false)
-  const ctaQuickRef = useRef<{
-    x: gsap.QuickToFunc
-    y: gsap.QuickToFunc
-  } | null>(null)
-  const touchStartX = useRef(0)
+  const ctaQuickRef = useRef<{ x: gsap.QuickToFunc; y: gsap.QuickToFunc } | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
-
-  const store = stores[currentIndex]
-  const { prev2, prev1, next1, next2 } = getAdjacentStores(currentIndex)
 
   // ── Core transition ────────────────────────────────────────────────────────
   const transitionToStore = useCallback((newIndex: number, dir: 'next' | 'prev') => {
@@ -87,7 +100,6 @@ export default function HeroCatalog() {
     const tl = gsap.timeline()
     activeTlRef.current = tl
 
-    // Reduced motion: plain crossfade, no movement
     if (reducedMotionRef.current) {
       const sel = '.product-card, .side-logo-panel, .store-logo-img, .store-name-char, .store-counter-num, .watermark-text'
       tl.to(hero.querySelectorAll<HTMLElement>(sel), { opacity: 0, duration: 0.2 })
@@ -96,13 +108,12 @@ export default function HeroCatalog() {
           tl.fromTo(
             hero.querySelectorAll<HTMLElement>(sel),
             { opacity: 0 },
-            { opacity: 1, duration: 0.35 }
+            { opacity: 1, duration: 0.35 },
           )
         })
       return
     }
 
-    // ── EXIT (old nodes, resolved now) ──────────────────────────────────────
     tl
       .to(q('product-card'), {
         clipPath: 'inset(0% 0% 100% 0%)',
@@ -147,9 +158,7 @@ export default function HeroCatalog() {
         ease: 'power2.inOut',
       }, '<')
 
-      // ── STATE SWAP + ENTER ────────────────────────────────────────────────
-      // Enter tweens are appended inside the callback so selectors resolve
-      // the freshly mounted (keyed) nodes, not the detached pre-swap ones.
+      // Enter tweens appended inside callback so selectors resolve fresh mounted nodes
       .call(() => {
         flushSync(() => setCurrentIndex(newIndex))
 
@@ -159,22 +168,8 @@ export default function HeroCatalog() {
             { scale: 1, autoAlpha: 1, filter: 'blur(0px)', duration: 0.9, ease: 'power3.out' }
           )
           .fromTo(q('store-name-char'),
-            {
-              rotateX: dir === 'next' ? -78 : 78,
-              y: 14,
-              autoAlpha: 0,
-              filter: 'blur(6px)',
-              transformPerspective: 900,
-            },
-            {
-              rotateX: 0,
-              y: 0,
-              autoAlpha: 1,
-              filter: 'blur(0px)',
-              stagger: { each: 0.05, from: dir === 'next' ? 'start' : 'end' },
-              duration: 0.9,
-              ease: 'power4.out',
-            },
+            { rotateX: dir === 'next' ? -78 : 78, y: 14, autoAlpha: 0, filter: 'blur(6px)', transformPerspective: 900 },
+            { rotateX: 0, y: 0, autoAlpha: 1, filter: 'blur(0px)', stagger: { each: 0.05, from: dir === 'next' ? 'start' : 'end' }, duration: 0.9, ease: 'power4.out' },
             '<0.08'
           )
           .fromTo(q('store-counter-num'),
@@ -184,34 +179,17 @@ export default function HeroCatalog() {
           )
           .fromTo(q('product-card'),
             { clipPath: 'inset(100% 0% 0% 0%)' },
-            {
-              clipPath: 'inset(0% 0% 0% 0%)',
-              stagger: { each: 0.07, from: dir === 'next' ? 'start' : 'end' },
-              duration: 1.0,
-              ease: 'power4.out',
-            },
+            { clipPath: 'inset(0% 0% 0% 0%)', stagger: { each: 0.07, from: dir === 'next' ? 'start' : 'end' }, duration: 1.0, ease: 'power4.out' },
             '<0.1'
           )
           .fromTo(q('product-img'),
             { scale: 1.18 },
-            {
-              scale: 1,
-              stagger: { each: 0.07, from: dir === 'next' ? 'start' : 'end' },
-              duration: 1.4,
-              ease: 'power3.out',
-            },
+            { scale: 1, stagger: { each: 0.07, from: dir === 'next' ? 'start' : 'end' }, duration: 1.4, ease: 'power3.out' },
             '<'
           )
           .fromTo(q('side-logo-panel'),
             { x: dir === 'next' ? 24 : -24, scale: 0.96, autoAlpha: 0 },
-            {
-              x: 0,
-              scale: 1,
-              autoAlpha: 1,
-              stagger: 0.1,
-              duration: 0.8,
-              ease: 'power3.out',
-            },
+            { x: 0, scale: 1, autoAlpha: 1, stagger: 0.1, duration: 0.8, ease: 'power3.out' },
             '<0.15'
           )
           .fromTo(q('watermark-text'),
@@ -222,101 +200,77 @@ export default function HeroCatalog() {
       })
   }, [])
 
-  // ── Click navigation ───────────────────────────────────────────────────────
-  const goToStore = useCallback((targetIndex: number) => {
-    if (targetIndex === currentIndexRef.current) return
-    const dir = cycleDir(currentIndexRef.current, targetIndex, stores.length)
-    currentIndexRef.current = targetIndex
-    transitionToStore(targetIndex, dir)
-  }, [transitionToStore])
+  // Template Method: algorithm skeleton (index wrapping, direction, touch) is fixed;
+  // transitionToStore is the variable step injected by this component.
+  const { goTo: goToStore, touchHandlers } = useCarousel({
+    count: stores.length,
+    onNavigate: transitionToStore,
+  })
 
   // ── Intro + micro-interactions ─────────────────────────────────────────────
-  useGSAP(() => {
-    const hero = heroRef.current
-    if (!hero) return
+  useGSAP(
+    () => {
+      const hero = heroRef.current
+      if (!hero) return
 
-    const q = (sel: string) => hero.querySelectorAll<HTMLElement>(sel)
-    const mm = gsap.matchMedia()
+      createSectionAnimation(hero, {
+        onReducedMotionChange: (isReduced) => { reducedMotionRef.current = isReduced },
+        reduced: (q) => {
+          gsap.set(q('.intro-veil'), { autoAlpha: 0 })
+        },
+        full: (q, _section) => {
+          const panels = gsap.utils.toArray<HTMLElement>(q('.side-logo-panel'))
+          gsap.set(q('.store-logo-img'), { scale: 0.92, autoAlpha: 0, filter: 'blur(8px)' })
+          gsap.set(q('.store-name-char'), { y: 28, autoAlpha: 0, filter: 'blur(6px)' })
+          gsap.set(q('.hero-divider'), { scaleX: 0 })
+          gsap.set(q('.product-card'), { clipPath: 'inset(100% 0% 0% 0%)' })
+          gsap.set(q('.product-img'), { scale: 1.18 })
+          gsap.set(panels, { x: (i) => (i < 2 ? -40 : 40), autoAlpha: 0 })
+          gsap.set(q('.hero-fade-in'), { y: 12, autoAlpha: 0 })
 
-    mm.add('(prefers-reduced-motion: reduce)', () => {
-      reducedMotionRef.current = true
-      gsap.set(q('.intro-veil'), { autoAlpha: 0 })
-    })
+          const intro = gsap.timeline()
+          intro
+            .to(q('.intro-veil'), { autoAlpha: 0, duration: 1.1, ease: 'power2.inOut' })
+            .to(q('.store-logo-img'), { scale: 1, autoAlpha: 1, filter: 'blur(0px)', duration: 1.0, ease: 'power3.out' }, '-=0.55')
+            .to(q('.store-name-char'), { y: 0, autoAlpha: 1, filter: 'blur(0px)', stagger: 0.045, duration: 1.0, ease: 'power4.out' }, '<0.1')
+            .to(q('.hero-divider'), { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, '<0.2')
+            .to(q('.product-card'), { clipPath: 'inset(0% 0% 0% 0%)', stagger: 0.08, duration: 1.0, ease: 'power4.out' }, '<0.15')
+            .to(q('.product-img'), { scale: 1, stagger: 0.08, duration: 1.4, ease: 'power3.out' }, '<')
+            .to(panels, { x: 0, autoAlpha: 1, stagger: 0.1, duration: 0.9, ease: 'power3.out' }, '<0.2')
+            .to(q('.hero-fade-in'), { y: 0, autoAlpha: 1, stagger: 0.08, duration: 0.8, ease: 'power2.out' }, '<0.3')
 
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
-      reducedMotionRef.current = false
+          return () => { intro.kill() }
+        },
+        pointer: (_q, section) => {
+          const centerX = gsap.quickTo(centerRef.current, 'x', { duration: 1.2, ease: 'power3.out' })
+          const centerY = gsap.quickTo(centerRef.current, 'y', { duration: 1.2, ease: 'power3.out' })
+          const videoX = gsap.quickTo(videoRef.current, 'x', { duration: 1.6, ease: 'power3.out' })
+          const videoY = gsap.quickTo(videoRef.current, 'y', { duration: 1.6, ease: 'power3.out' })
 
-      // ── Orchestrated intro ────────────────────────────────────────────────
-      const panels = gsap.utils.toArray<HTMLElement>(q('.side-logo-panel'))
-      gsap.set(q('.store-logo-img'), { scale: 0.92, autoAlpha: 0, filter: 'blur(8px)' })
-      gsap.set(q('.store-name-char'), { y: 28, autoAlpha: 0, filter: 'blur(6px)' })
-      gsap.set(q('.hero-divider'), { scaleX: 0 })
-      gsap.set(q('.product-card'), { clipPath: 'inset(100% 0% 0% 0%)' })
-      gsap.set(q('.product-img'), { scale: 1.18 })
-      gsap.set(panels, { x: (i) => (i < 2 ? -40 : 40), autoAlpha: 0 })
-      gsap.set(q('.hero-fade-in'), { y: 12, autoAlpha: 0 })
+          const onMove = (e: MouseEvent) => {
+            const nx = e.clientX / window.innerWidth - 0.5
+            const ny = e.clientY / window.innerHeight - 0.5
+            centerX(nx * 14)
+            centerY(ny * 10)
+            videoX(nx * -22)
+            videoY(ny * -14)
+          }
+          section.addEventListener('mousemove', onMove)
 
-      const intro = gsap.timeline()
-      intro
-        .to(q('.intro-veil'), { autoAlpha: 0, duration: 1.1, ease: 'power2.inOut' })
-        .to(q('.store-logo-img'), {
-          scale: 1, autoAlpha: 1, filter: 'blur(0px)',
-          duration: 1.0, ease: 'power3.out',
-        }, '-=0.55')
-        .to(q('.store-name-char'), {
-          y: 0, autoAlpha: 1, filter: 'blur(0px)',
-          stagger: 0.045, duration: 1.0, ease: 'power4.out',
-        }, '<0.1')
-        .to(q('.hero-divider'), { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, '<0.2')
-        .to(q('.product-card'), {
-          clipPath: 'inset(0% 0% 0% 0%)',
-          stagger: 0.08, duration: 1.0, ease: 'power4.out',
-        }, '<0.15')
-        .to(q('.product-img'), {
-          scale: 1, stagger: 0.08, duration: 1.4, ease: 'power3.out',
-        }, '<')
-        .to(panels, {
-          x: 0, autoAlpha: 1, stagger: 0.1, duration: 0.9, ease: 'power3.out',
-        }, '<0.2')
-        .to(q('.hero-fade-in'), {
-          y: 0, autoAlpha: 1, stagger: 0.08, duration: 0.8, ease: 'power2.out',
-        }, '<0.3')
+          ctaQuickRef.current = {
+            x: gsap.quickTo(ctaRef.current, 'x', { duration: 0.4, ease: 'power3.out' }),
+            y: gsap.quickTo(ctaRef.current, 'y', { duration: 0.4, ease: 'power3.out' }),
+          }
 
-      return () => {
-        intro.kill()
-      }
-    })
-
-    mm.add('(pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
-      // Mouse parallax: center drifts with the cursor, background drifts
-      // against it for depth
-      const centerX = gsap.quickTo(centerRef.current, 'x', { duration: 1.2, ease: 'power3.out' })
-      const centerY = gsap.quickTo(centerRef.current, 'y', { duration: 1.2, ease: 'power3.out' })
-      const videoX = gsap.quickTo(videoRef.current, 'x', { duration: 1.6, ease: 'power3.out' })
-      const videoY = gsap.quickTo(videoRef.current, 'y', { duration: 1.6, ease: 'power3.out' })
-
-      const onMove = (e: MouseEvent) => {
-        const nx = e.clientX / window.innerWidth - 0.5
-        const ny = e.clientY / window.innerHeight - 0.5
-        centerX(nx * 14)
-        centerY(ny * 10)
-        videoX(nx * -22)
-        videoY(ny * -14)
-      }
-      hero.addEventListener('mousemove', onMove)
-
-      // Magnetic CTA
-      ctaQuickRef.current = {
-        x: gsap.quickTo(ctaRef.current, 'x', { duration: 0.4, ease: 'power3.out' }),
-        y: gsap.quickTo(ctaRef.current, 'y', { duration: 0.4, ease: 'power3.out' }),
-      }
-
-      return () => {
-        hero.removeEventListener('mousemove', onMove)
-        ctaQuickRef.current = null
-      }
-    })
-  }, { scope: outerRef, dependencies: [transitionToStore] })
+          return () => {
+            section.removeEventListener('mousemove', onMove)
+            ctaQuickRef.current = null
+          }
+        },
+      })
+    },
+    { scope: outerRef },
+  )
 
   const onCtaMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     const quick = ctaQuickRef.current
@@ -332,35 +286,18 @@ export default function HeroCatalog() {
     gsap.to(ctaRef.current, { x: 0, y: 0, duration: 1, ease: 'elastic.out(1, 0.4)' })
   }, [])
 
+  const store = stores[currentIndex]
+  const { prev2, prev1, next1, next2 } = getAdjacentStores(currentIndex)
   const prevIndex2 = ((currentIndex - 2) + stores.length) % stores.length
   const prevIndex1 = ((currentIndex - 1) + stores.length) % stores.length
   const nextIndex1 = (currentIndex + 1) % stores.length
   const nextIndex2 = (currentIndex + 2) % stores.length
 
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-  }, [])
-
-  const onTouchEnd = useCallback((e: React.TouchEvent) => {
-    const delta = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(delta) < 44) return
-    if (delta < 0) {
-      const ni = (currentIndexRef.current + 1) % stores.length
-      currentIndexRef.current = ni
-      transitionToStore(ni, 'next')
-    } else {
-      const ni = ((currentIndexRef.current - 1) + stores.length) % stores.length
-      currentIndexRef.current = ni
-      transitionToStore(ni, 'prev')
-    }
-  }, [transitionToStore])
-
   return (
     <div ref={outerRef}>
       <div
         ref={heroRef}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
+        {...touchHandlers}
         className="relative min-h-[calc(100dvh-5rem)] lg:h-[calc(100vh-5rem)] lg:min-h-[600px] w-full overflow-hidden bg-black"
       >
         {/* ── Background video ─────────────────────────────────────────── */}
@@ -372,20 +309,16 @@ export default function HeroCatalog() {
           playsInline
           preload="auto"
           className="absolute inset-0 w-full h-full object-cover scale-[1.12]"
-          style={{ filter: "blur(4px) brightness(0.38)" }}
+          style={{ filter: 'blur(4px) brightness(0.38)' }}
           src="/images/1.mp4"
         />
-        {/* Vignette */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50 pointer-events-none" />
 
         {/* ── Editorial counter ────────────────────────────────────────── */}
         <div className="hero-fade-in absolute top-8 left-8 lg:left-10 z-20 flex items-baseline gap-2 font-sans text-[10px] tracking-[0.3em] pointer-events-none select-none">
           <span className="inline-flex overflow-hidden">
-            <span
-              key={`counter-${currentIndex}`}
-              className="store-counter-num inline-block text-white/85"
-            >
+            <span key={`counter-${currentIndex}`} className="store-counter-num inline-block text-white/85">
               {pad(currentIndex + 1)}
             </span>
           </span>
@@ -413,39 +346,16 @@ export default function HeroCatalog() {
         <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-[90px_115px_1fr_115px_90px] xl:grid-cols-[110px_140px_1fr_140px_110px] 2xl:grid-cols-[130px_160px_1fr_160px_130px] items-center gap-3 px-4 lg:px-6">
           {/* Left far — prev2 */}
           <div className="hidden lg:flex h-[44vh] items-center justify-center">
-            <SideLogoPanel
-              store={prev2}
-              far
-              perspStyle={{
-                transform: "perspective(400px) rotateY(46deg) scaleY(0.68)",
-                transformOrigin: "right center",
-                width: "100%",
-                height: "100%",
-              }}
-              onClick={() => goToStore(prevIndex2)}
-            />
+            <SideLogoPanel store={prev2} far perspStyle={PERSP_FAR_LEFT} onClick={() => goToStore(prevIndex2)} />
           </div>
 
           {/* Left near — prev1 */}
           <div className="hidden lg:flex h-[58vh] items-center justify-center">
-            <SideLogoPanel
-              store={prev1}
-              perspStyle={{
-                transform: "perspective(400px) rotateY(28deg) scaleY(0.83)",
-                transformOrigin: "right center",
-                width: "100%",
-                height: "100%",
-              }}
-              onClick={() => goToStore(prevIndex1)}
-            />
+            <SideLogoPanel store={prev1} perspStyle={PERSP_NEAR_LEFT} onClick={() => goToStore(prevIndex1)} />
           </div>
 
           {/* ── Center content ────────────────────────────────────────── */}
-          <div
-            ref={centerRef}
-            className="h-full flex flex-col items-center justify-center gap-4 sm:gap-5 py-10 sm:py-6"
-          >
-            {/* Logo + store name — perspective wrapper for 3D char flip */}
+          <div ref={centerRef} className="h-full flex flex-col items-center justify-center gap-4 sm:gap-5 py-10 sm:py-6">
             <div className="flex items-center gap-4 lg:gap-5">
               <div className="w-[60px] h-[60px] lg:w-[70px] lg:h-[70px] bg-white rounded-xl flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.12)] shrink-0">
                 <Image
@@ -458,37 +368,34 @@ export default function HeroCatalog() {
                 />
               </div>
 
-              {/* perspective on this div enables 3D rotateX on children */}
-              <div style={{ perspective: "900px" }}>
+              <div style={{ perspective: '900px' }}>
                 <h1 className="font-cormorant font-light text-white uppercase leading-none tracking-[0.15em] sm:tracking-[0.2em] lg:tracking-[0.28em] text-2xl sm:text-3xl lg:text-5xl xl:text-[3.5rem] whitespace-nowrap">
-                  {store.name.split("").map((char, i) => (
+                  {store.name.split('').map((char, i) => (
                     <span
                       key={`${currentIndex}-${i}`}
                       className="store-name-char inline-block"
-                      style={{ display: "inline-block" }}
+                      style={{ display: 'inline-block' }}
                     >
-                      {char === " " ? " " : char}
+                      {char === ' ' ? ' ' : char}
                     </span>
                   ))}
                 </h1>
               </div>
             </div>
 
-            {/* Divider — couture detail */}
             <div className="hero-divider w-full max-w-3xl flex items-center">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/25" />
               <div className="mx-3 w-1 h-1 rotate-45 bg-white/60 shrink-0" />
               <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/25" />
             </div>
 
-            {/* Products grid — 2 cols mobile, 4 cols desktop */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 w-full max-w-3xl xl:max-w-[880px]">
               {store.products.map((product, i) => (
                 <div
                   key={`${currentIndex}-p${i}`}
                   onClick={() => router.push(`/tienda/${store.id}/producto/${product.slug}`)}
                   className={`product-card group relative bg-black/45 backdrop-blur-sm border border-white/15 rounded-md overflow-hidden cursor-pointer hover:bg-black/60 hover:border-white/50 transition-all duration-500 ease-out${i >= 4 ? ' hidden sm:block' : ''}`}
-                  style={{ clipPath: "inset(0% 0% 0% 0%)" }}
+                  style={{ clipPath: 'inset(0% 0% 0% 0%)' }}
                 >
                   <div className="relative w-full aspect-square sm:aspect-[5/4] overflow-hidden">
                     <Image
@@ -498,10 +405,8 @@ export default function HeroCatalog() {
                       className="product-img object-cover group-hover:scale-[1.05] transition-transform duration-700 ease-out"
                       sizes="(max-width: 640px) 45vw, (max-width: 1280px) 18vw, 180px"
                     />
-                    {/* Legibility gradient */}
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/45 to-transparent pointer-events-none" />
                   </div>
-                  {/* Info area */}
                   <div className="px-3 sm:px-5 pt-2 sm:pt-4 pb-3 sm:pb-5">
                     <p className="text-white/90 text-[13px] sm:text-[17px] leading-snug tracking-[0.01em] line-clamp-2 min-h-[2.4em] sm:min-h-[2.75em] font-sans">
                       {product.name}
@@ -514,48 +419,26 @@ export default function HeroCatalog() {
               ))}
             </div>
 
-            {/* CTA — magnetic, fill sweep on hover */}
-            <button
+            <Button
               ref={ctaRef}
+              theme="dark"
               onMouseMove={onCtaMove}
               onMouseLeave={onCtaLeave}
               onClick={() => router.push(`/tienda/${store.id}`)}
-              className="hero-fade-in group relative overflow-hidden font-bebas text-base sm:text-lg lg:text-xl xl:text-2xl tracking-[0.3em] sm:tracking-[0.5em] px-8 sm:px-16 lg:px-24 py-3 sm:py-4 lg:py-5 border border-white/80 text-white cursor-pointer"
+              className="hero-fade-in font-bebas text-base sm:text-lg lg:text-xl xl:text-2xl tracking-[0.3em] sm:tracking-[0.5em] px-8 sm:px-16 lg:px-24 py-3 sm:py-4 lg:py-5 border border-white/80 text-white"
             >
-              <span className="absolute inset-0 bg-white origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-              <span className="relative z-10 group-hover:text-black transition-colors duration-500">
-                ACCEDER A LA TIENDA
-              </span>
-            </button>
+              ACCEDER A LA TIENDA
+            </Button>
           </div>
 
           {/* Right near — next1 */}
           <div className="hidden lg:flex h-[58vh] items-center justify-center">
-            <SideLogoPanel
-              store={next1}
-              perspStyle={{
-                transform: "perspective(400px) rotateY(-28deg) scaleY(0.83)",
-                transformOrigin: "left center",
-                width: "100%",
-                height: "100%",
-              }}
-              onClick={() => goToStore(nextIndex1)}
-            />
+            <SideLogoPanel store={next1} perspStyle={PERSP_NEAR_RIGHT} onClick={() => goToStore(nextIndex1)} />
           </div>
 
           {/* Right far — next2 */}
           <div className="hidden lg:flex h-[44vh] items-center justify-center">
-            <SideLogoPanel
-              store={next2}
-              far
-              perspStyle={{
-                transform: "perspective(400px) rotateY(-46deg) scaleY(0.68)",
-                transformOrigin: "left center",
-                width: "100%",
-                height: "100%",
-              }}
-              onClick={() => goToStore(nextIndex2)}
-            />
+            <SideLogoPanel store={next2} far perspStyle={PERSP_FAR_RIGHT} onClick={() => goToStore(nextIndex2)} />
           </div>
         </div>
 
@@ -567,9 +450,7 @@ export default function HeroCatalog() {
               onClick={() => goToStore(i)}
               aria-label={`Ir a ${s.name}`}
               className={`transition-all duration-500 ease-out cursor-pointer ${
-                i === currentIndex
-                  ? "w-8 h-px bg-white"
-                  : "w-2 h-px bg-white/25 hover:bg-white/60"
+                i === currentIndex ? 'w-8 h-px bg-white' : 'w-2 h-px bg-white/25 hover:bg-white/60'
               }`}
             />
           ))}
@@ -586,5 +467,5 @@ export default function HeroCatalog() {
         <div className="intro-veil absolute inset-0 z-50 bg-black pointer-events-none" />
       </div>
     </div>
-  );
+  )
 }

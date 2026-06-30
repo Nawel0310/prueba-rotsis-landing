@@ -1,47 +1,15 @@
 'use client'
 
-import { useEffect } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
-import { useLenis } from 'lenis/react'
 import { useCart } from './CartProvider'
-
-function parsePrice(price: string): number {
-  const cleaned = price.replace(/[^0-9.,]/g, '')
-  const normalized = cleaned.replace(/\./g, '').replace(',', '.')
-  return parseFloat(normalized) || 0
-}
-
-function formatPrice(n: number): string {
-  return `$${n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
+import { usePreventScroll } from '@/hooks/usePreventScroll'
+import { parsePrice, formatPrice } from '@/lib/utils'
+import { Button } from '@/components/ui/Button'
 
 export default function CartDrawer() {
   const { items, isOpen, closeDrawer, removeItem, updateQty } = useCart()
-  const lenis = useLenis()
-
-  useEffect(() => {
-    if (isOpen) {
-      lenis?.stop()
-      document.body.style.overflow = 'hidden'
-    } else {
-      lenis?.start()
-      document.body.style.overflow = ''
-    }
-    return () => {
-      lenis?.start()
-      document.body.style.overflow = ''
-    }
-  }, [isOpen, lenis])
-
-  useEffect(() => {
-    if (!isOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeDrawer()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [isOpen, closeDrawer])
+  usePreventScroll(isOpen)
 
   const subtotal = items.reduce((sum, i) => sum + parsePrice(i.price) * i.qty, 0)
 
@@ -57,6 +25,7 @@ export default function CartDrawer() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
+          onKeyDown={(e) => { if (e.key === 'Escape') closeDrawer() }}
         >
           <motion.div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeDrawer} />
 
@@ -146,15 +115,13 @@ export default function CartDrawer() {
                 <p className="font-sans font-semibold text-white text-lg">{formatPrice(subtotal)}</p>
               </div>
 
-              <button
+              <Button
+                theme="dark"
                 disabled={items.length === 0}
-                className="group relative overflow-hidden w-full font-bebas text-sm tracking-[0.4em] px-6 py-4 border border-white/80 text-white cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
+                className="w-full font-bebas text-sm tracking-[0.4em] px-6 py-4 border border-white/80 text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
               >
-                <span className="absolute inset-0 bg-white origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-                <span className="relative z-10 group-hover:text-black transition-colors duration-500">
-                  SOLICITAR COMPRA
-                </span>
-              </button>
+                SOLICITAR COMPRA
+              </Button>
               <p className="font-sans text-[10px] tracking-[0.15em] text-white/40 uppercase text-center mt-3 leading-relaxed">
                 Un asesor de concierge se pondrá en contacto para finalizar su selección
               </p>
